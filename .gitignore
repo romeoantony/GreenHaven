@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+bin/
+obj/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
