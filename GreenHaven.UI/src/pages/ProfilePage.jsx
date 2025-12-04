@@ -99,7 +99,9 @@ const ProfilePage = () => {
     } catch (error) {
       setMessage({ 
         type: 'error', 
-        text: error.response?.data?.title || 'Failed to change password.' 
+        text: Array.isArray(error.response?.data) 
+          ? error.response.data[0].description 
+          : (error.response?.data?.title || 'Failed to change password.')
       });
     } finally {
       setIsLoading(false);
