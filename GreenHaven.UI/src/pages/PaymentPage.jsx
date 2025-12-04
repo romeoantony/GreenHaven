@@ -18,7 +18,6 @@ const PaymentPage = () => {
     cardNumber: '',
     expiry: '',
     cvv: '',
-    cvv: '',
     name: '',
     orderIdentifier: ''
   });
@@ -27,7 +26,6 @@ const PaymentPage = () => {
     setFormData({
       cardNumber: '4242 4242 4242 4242',
       expiry: '12/25',
-      cvv: '123',
       cvv: '123',
       name: 'Test User',
       orderIdentifier: 'Test Order #123'

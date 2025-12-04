@@ -7,13 +7,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import PlantForm from '../components/PlantForm';
 import OrderDetailsModal from '../components/OrderDetailsModal';
 import EditOrderModal from '../components/EditOrderModal';
+import UserForm from '../components/UserForm';
 
 const AdminDashboard = () => {
   const token = useAuthStore((state) => state.token);
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPlant, setEditingPlant] = useState(null);
-  const [activeTab, setActiveTab] = useState('plants'); // 'plants' or 'orders'
+  const [editingUser, setEditingUser] = useState(null);
+  const [activeTab, setActiveTab] = useState('plants'); // 'plants', 'orders', or 'users'
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
   
@@ -40,6 +42,18 @@ const AdminDashboard = () => {
       return response.data;
     },
     enabled: activeTab === 'orders'
+  });
+
+  // Fetch Users
+  const { data: users } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const response = await api.get('/users', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data;
+    },
+    enabled: activeTab === 'users'
   });
 
   // Create Mutation
@@ -108,6 +122,38 @@ const AdminDashboard = () => {
     }
   });
 
+  // Update User Mutation
+  const updateUserMutation = useMutation({
+    mutationFn: async (updatedUser) => {
+      await api.put(`/users/${editingUser.id}`, updatedUser, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['users']);
+      setIsModalOpen(false);
+      setEditingUser(null);
+    },
+    onError: (error) => {
+      alert('Failed to update user: ' + (error.response?.data?.title || error.message));
+    }
+  });
+
+  // Delete User Mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: async (id) => {
+      await api.delete(`/users/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['users']);
+    },
+    onError: (error) => {
+      alert('Failed to delete user: ' + (error.response?.data?.title || error.message));
+    }
+  });
+
   const handleAddClick = () => {
     setEditingPlant(null);
     setIsModalOpen(true);
@@ -121,6 +167,17 @@ const AdminDashboard = () => {
   const handleDeleteClick = (id) => {
     if (window.confirm('Are you sure you want to delete this plant?')) {
       deleteMutation.mutate(id);
+    }
+  };
+
+  const handleEditUserClick = (user) => {
+    setEditingUser(user);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteUserClick = (id) => {
+    if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      deleteUserMutation.mutate(id);
     }
   };
 
@@ -162,6 +219,8 @@ const AdminDashboard = () => {
   const handleFormSubmit = (data) => {
     if (editingPlant) {
       updateMutation.mutate(data);
+    } else if (editingUser) {
+      updateUserMutation.mutate(data);
     } else {
       createMutation.mutate(data);
     }
@@ -209,8 +268,14 @@ const AdminDashboard = () => {
     order.status.toLowerCase().includes(searchTerm.toLowerCase())
   ) : [];
 
+  const filteredUsers = Array.isArray(users) ? users.filter(user => 
+    user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  ) : [];
+
   const sortedPlants = sortData(filteredPlants);
   const sortedOrders = sortData(filteredOrders);
+  const sortedUsers = sortData(filteredUsers);
 
   const SortHeader = ({ label, column }) => (
     <th 
@@ -238,7 +303,7 @@ const AdminDashboard = () => {
           <div className="relative">
             <input
               type="text"
-              placeholder={activeTab === 'plants' ? "Search plants..." : "Search orders..."}
+              placeholder={activeTab === 'plants' ? "Search plants..." : activeTab === 'orders' ? "Search orders..." : "Search users..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none w-full md:w-64"
@@ -259,12 +324,18 @@ const AdminDashboard = () => {
             >
               Orders
             </button>
+            <button
+              onClick={() => { setActiveTab('users'); setSearchTerm(''); setSortConfig({ key: null, direction: 'ascending' }); }}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'users' ? 'bg-white shadow text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              Users
+            </button>
           </div>
         </div>
       </div>
 
       <AnimatePresence mode="wait">
-        {activeTab === 'plants' ? (
+        {activeTab === 'plants' && (
           <motion.div
             key="plants"
             initial={{ opacity: 0, y: 10 }}
@@ -282,51 +353,55 @@ const AdminDashboard = () => {
               </button>
             </div>
             <div className="bg-white rounded-lg shadow overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
-                    <SortHeader label="Name" column="name" />
-                    <SortHeader label="Price" column="price" />
-                    <SortHeader label="Stock" column="stockQuantity" />
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {sortedPlants?.map((plant) => (
-                    <tr key={plant.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <img src={plant.imageUrl} alt={plant.name} className="h-10 w-10 rounded-full object-cover" />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{plant.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₹{plant.price}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{plant.stockQuantity}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-4">
-                        <button 
-                          onClick={() => handleEditClick(plant)}
-                          className="text-indigo-600 hover:text-indigo-900"
-                        >
-                          <Edit size={18} />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteClick(plant.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {sortedPlants?.length === 0 && (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
                     <tr>
-                      <td colSpan="5" className="px-6 py-4 text-center text-gray-500">No plants found matching your search.</td>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+                      <SortHeader label="Name" column="name" />
+                      <SortHeader label="Price" column="price" />
+                      <SortHeader label="Stock" column="stockQuantity" />
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {sortedPlants?.map((plant) => (
+                      <tr key={plant.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <img src={plant.imageUrl} alt={plant.name} className="h-10 w-10 rounded-full object-cover" />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{plant.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₹{plant.price}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{plant.stockQuantity}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-4">
+                          <button 
+                            onClick={() => handleEditClick(plant)}
+                            className="text-indigo-600 hover:text-indigo-900"
+                          >
+                            <Edit size={18} />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteClick(plant.id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {sortedPlants?.length === 0 && (
+                      <tr>
+                        <td colSpan="5" className="px-6 py-4 text-center text-gray-500">No plants found matching your search.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </motion.div>
-        ) : (
+        )}
+
+        {activeTab === 'orders' && (
           <motion.div
             key="orders"
             initial={{ opacity: 0, y: 10 }}
@@ -335,69 +410,125 @@ const AdminDashboard = () => {
             transition={{ duration: 0.2 }}
             className="bg-white rounded-lg shadow overflow-hidden"
           >
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <SortHeader label="Order ID" column="id" />
-                  <SortHeader label="Date" column="orderDate" />
-                  <SortHeader label="Customer / Ref" column="orderIdentifier" />
-                  <SortHeader label="Items" column="itemCount" />
-                  <SortHeader label="Total" column="totalAmount" />
-                  <SortHeader label="Status" column="status" />
-                  <SortHeader label="Last Updated" column="lastUpdated" />
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {sortedOrders?.map((order) => (
-                  <tr key={order.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{order.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(order.orderDate).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div className="flex flex-col">
-                        <span className="font-medium">{order.orderIdentifier || 'N/A'}</span>
-                        <span className="text-xs text-gray-500">{order.userEmail}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.itemCount} items</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-highlight">₹{order.totalAmount}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        order.status === 'Completed' ? 'bg-green-100 text-green-800' : 
-                        order.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {order.lastUpdated ? new Date(order.lastUpdated).toLocaleString() : '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-4">
-                      <button 
-                        onClick={() => handleViewOrder(order)}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="View Details"
-                      >
-                        <Eye size={18} />
-                      </button>
-                      <button 
-                        onClick={() => handleEditOrder(order)}
-                        className="text-indigo-600 hover:text-indigo-900"
-                        title="Edit Order"
-                      >
-                        <Edit size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {sortedOrders?.length === 0 && (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
                   <tr>
-                    <td colSpan="8" className="px-6 py-4 text-center text-gray-500">No orders found matching your search.</td>
+                    <SortHeader label="Order ID" column="id" />
+                    <SortHeader label="Date" column="orderDate" />
+                    <SortHeader label="Customer / Ref" column="orderIdentifier" />
+                    <SortHeader label="Items" column="itemCount" />
+                    <SortHeader label="Total" column="totalAmount" />
+                    <SortHeader label="Status" column="status" />
+                    <SortHeader label="Last Updated" column="lastUpdated" />
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {sortedOrders?.map((order) => (
+                    <tr key={order.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{order.id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(order.orderDate).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <div className="flex flex-col">
+                          <span className="font-medium">{order.orderIdentifier || 'N/A'}</span>
+                          <span className="text-xs text-gray-500">{order.userEmail}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.itemCount} items</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-highlight">₹{order.totalAmount}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          order.status === 'Completed' ? 'bg-green-100 text-green-800' : 
+                          order.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {order.lastUpdated ? new Date(order.lastUpdated).toLocaleString() : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-4">
+                        <button 
+                          onClick={() => handleViewOrder(order)}
+                          className="text-blue-600 hover:text-blue-900"
+                          title="View Details"
+                        >
+                          <Eye size={18} />
+                        </button>
+                        <button 
+                          onClick={() => handleEditOrder(order)}
+                          className="text-indigo-600 hover:text-indigo-900"
+                          title="Edit Order"
+                        >
+                          <Edit size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {sortedOrders?.length === 0 && (
+                    <tr>
+                      <td colSpan="8" className="px-6 py-4 text-center text-gray-500">No orders found matching your search.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'users' && (
+          <motion.div
+            key="users"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="bg-white rounded-lg shadow overflow-hidden"
+          >
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <SortHeader label="Full Name" column="fullName" />
+                    <SortHeader label="Email" column="email" />
+                    <SortHeader label="Username" column="userName" />
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {sortedUsers?.map((user) => (
+                    <tr key={user.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.fullName}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.userName}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-4">
+                        <button 
+                          onClick={() => handleEditUserClick(user)}
+                          className="text-indigo-600 hover:text-indigo-900"
+                          title="Edit User"
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteUserClick(user.id)}
+                          className="text-red-600 hover:text-red-900"
+                          title="Delete User"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {sortedUsers?.length === 0 && (
+                    <tr>
+                      <td colSpan="4" className="px-6 py-4 text-center text-gray-500">No users found matching your search.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -416,13 +547,24 @@ const AdminDashboard = () => {
               exit={{ scale: 0.9, opacity: 0 }}
               className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto"
             >
-              <h2 className="text-xl font-bold mb-4">{editingPlant ? 'Edit Plant' : 'Add New Plant'}</h2>
-              <PlantForm 
-                initialData={editingPlant}
-                onSubmit={handleFormSubmit}
-                onCancel={() => setIsModalOpen(false)}
-                isLoading={createMutation.isPending || updateMutation.isPending}
-              />
+              <h2 className="text-xl font-bold mb-4">
+                {editingPlant ? 'Edit Plant' : editingUser ? 'Edit User' : 'Add New Plant'}
+              </h2>
+              {editingUser ? (
+                <UserForm
+                  initialData={editingUser}
+                  onSubmit={handleFormSubmit}
+                  onCancel={() => { setIsModalOpen(false); setEditingUser(null); }}
+                  isLoading={updateUserMutation.isPending}
+                />
+              ) : (
+                <PlantForm 
+                  initialData={editingPlant}
+                  onSubmit={handleFormSubmit}
+                  onCancel={() => setIsModalOpen(false)}
+                  isLoading={createMutation.isPending || updateMutation.isPending}
+                />
+              )}
             </motion.div>
           </motion.div>
         )}
