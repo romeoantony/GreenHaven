@@ -1,40 +1,143 @@
 # GreenHaven 🌿
 
-GreenHaven is a modern e-commerce platform dedicated to bringing nature indoors. We offer a curated collection of indoor plants, providing a seamless shopping experience for plant enthusiasts.
+GreenHaven is a modern e-commerce platform dedicated to bringing nature indoors. We offer a curated collection of indoor plants, providing a seamless shopping experience for plant enthusiasts with a beautiful, botanical-inspired design.
+
+## 🌟 Live Demo
+
+- **Frontend**: [https://orange-river-0ae9c2100.3.azurestaticapps.net/](https://orange-river-0ae9c2100.3.azurestaticapps.net/)
 
 ## Project Structure
 
 The project is divided into two main components:
 
-- **[GreenHaven.UI](./GreenHaven.UI)**: The frontend application built with React, Vite, and Tailwind CSS. It provides a responsive and interactive user interface for browsing plants, managing the cart, and placing orders.
-- **[GreenHaven.API](./GreenHaven.API)**: The backend API built with .NET Core. It handles data management, authentication, and business logic.
+- **[GreenHaven.UI](./GreenHaven.UI)**: The frontend application built with React, Vite, and Tailwind CSS. Features a modern, botanical UI with smooth animations and responsive design.
+- **[GreenHaven.API](./GreenHaven.API)**: The backend API built with .NET Core. Handles data management, authentication, and business logic with role-based access control.
 
-## Key Features
+## ✨ Key Features
 
-- **Browse Collection**: Explore a wide variety of indoor plants with detailed descriptions and care instructions.
-- **Smart Filtering**: Easily find plants based on category, light requirements, difficulty, and pet-friendliness.
-- **User Accounts**: Create an account to track orders and manage your profile.
-- **Admin Dashboard**: comprehensive dashboard for administrators to manage plants, orders, and users.
-- **Responsive Design**: A seamless experience across desktop, tablet, and mobile devices.
+### Shopping Experience
 
-## Getting Started
+- **Browse Collection**: Explore a wide variety of indoor plants with detailed descriptions and care instructions
+- **Smart Filtering**: Easily find plants based on category, light requirements, difficulty, and pet-friendliness
+- **Category Pills**: Quick-filter plants with one-click category buttons
+- **Search Functionality**: Real-time plant search with instant results
+- **Product Details Modal**: Beautiful modal with plant care information and add-to-cart functionality
 
-To get the project running locally, you will need to set up both the frontend and backend. Please refer to the specific README files in each directory for detailed instructions.
+### User Features
 
-1.  **Backend Setup**: Navigate to `GreenHaven.API` and follow the instructions to set up the database and run the server.
-2.  **Frontend Setup**: Navigate to `GreenHaven.UI` and follow the instructions to install dependencies and start the development server.
+- **User Accounts**: Create an account to track orders and manage your profile
+- **Order History**: View detailed order history with product information
+- **Shopping Cart**: Smooth cart drawer with animated item management
+- **Secure Checkout**: Protected payment flow with authentication
 
-## Technologies Used
+### Admin Features
 
-- **Frontend**: React, Vite, Tailwind CSS, Framer Motion, React Query, Zustand, Axios.
-- **Backend**: .NET Core, Entity Framework Core, SQL Server (or configured database).
+- **Admin Dashboard**: Comprehensive dashboard for managing plants, orders, and users
+- **Plant Management**: Add, edit, and delete plants with image uploads
+- **Order Management**: View and manage all customer orders
+- **User Management**: Manage user accounts and roles
+- **Role-Based Access**: Secure admin routes with proper authorization
 
-## Future Roadmap 🗺️
+### Design & UX
 
-We are constantly working to improve GreenHaven. Here are some features we plan to implement in the near future:
+- **Modern Botanical UI**: Clean, contemporary design with forest green color palette
+- **Smooth Animations**: Framer Motion powered transitions and micro-interactions
+- **Responsive Design**: Seamless experience across desktop, tablet, and mobile devices
+- **Outlined Button Style**: Modern, minimal button design throughout
+- **Enhanced Typography**: Large, bold headings with excellent visual hierarchy
+- **Category Pills**: Quick filtering with active state indicators
 
-- **Order Details UI Revamp**: Enhancing the order details view for a better mobile experience.
-- **Admin Dashboard Refinements**: Further improvements to the mobile layout of the admin dashboard.
-- **User Reviews**: Allow customers to leave reviews and ratings for plants.
-- **Wishlist**: Enable users to save their favorite plants for later.
-- **Payment Gateway Integration**: Secure payment processing for real transactions.
+## 🚀 Getting Started
+
+To get the project running locally, you will need to set up both the frontend and backend.
+
+### Prerequisites
+
+- Node.js (v16 or higher)
+- .NET 8 SDK
+- SQL Server LocalDB or SQL Server
+
+### Backend Setup
+
+1. Navigate to `GreenHaven.API`
+2. Update connection string in `appsettings.json` if needed
+3. Run migrations: `dotnet ef database update`
+4. Start the server: `dotnet run`
+
+### Frontend Setup
+
+1. Navigate to `GreenHaven.UI`
+2. Install dependencies: `npm install`
+3. Start development server: `npm run dev`
+4. Open browser to `http://localhost:5174`
+
+## 🛠️ Technologies Used
+
+### Frontend
+
+- **React** - UI library
+- **Vite** - Build tool and dev server
+- **Tailwind CSS** - Utility-first CSS framework
+- **Framer Motion** - Animation library
+- **React Query** - Server state management
+- **Zustand** - Client state management
+- **Axios** - HTTP client
+- **React Router** - Routing
+- **Lucide React** - Icon library
+
+### Backend
+
+- **.NET 8** - Web framework
+- **Entity Framework Core** - ORM
+- **SQL Server** - Database
+- **JWT Authentication** - Secure authentication
+- **ASP.NET Core Identity** - User management
+
+## 🎨 Design Philosophy
+
+GreenHaven embraces a modern botanical aesthetic with:
+
+- **Forest Green Palette**: Deep, natural greens that evoke growth and nature
+- **Clean White Spaces**: Ample breathing room for content
+- **Bold Typography**: Large, serif headings for impact
+- **Smooth Animations**: Delightful micro-interactions throughout
+- **Minimal Design**: Focus on content with clean, uncluttered layouts
+
+## 🔐 Security Features
+
+- **JWT Authentication**: Secure token-based authentication
+- **Role-Based Authorization**: Admin and User roles with proper access control
+- **Protected Routes**: Authentication required for checkout and profile pages
+- **Secure Admin Access**: Admin dashboard only accessible to authorized users
+- **Already Logged In Page**: Prevents logged-in users from accessing login/register pages
+
+## 📱 Responsive Features
+
+- **Mobile-First Design**: Optimized for mobile devices
+- **Adaptive Layouts**: Responsive grid systems for all screen sizes
+- **Mobile Filter Drawer**: Slide-out filter panel for mobile
+- **Touch-Friendly**: Large tap targets and smooth touch interactions
+
+## 🗺️ Future Roadmap
+
+- [ ] **User Reviews**: Allow customers to leave reviews and ratings for plants
+- [ ] **Wishlist**: Enable users to save favorite plants
+- [ ] **Payment Gateway Integration**: Stripe/PayPal integration for real transactions
+- [ ] **Email Notifications**: Order confirmations and updates
+- [ ] **Plant Care Reminders**: Notifications for watering and care schedules
+- [ ] **Social Sharing**: Share favorite plants on social media
+- [ ] **Advanced Search**: Filters for size, price range, and more
+
+## 📄 License
+
+This project is for educational and portfolio purposes.
+
+## 👨‍💻 Author
+
+**Romeo Antony**
+
+- GitHub: [@romeoantony](https://github.com/romeoantony)
+
+---
+
+Made with 🌱 and ❤️
