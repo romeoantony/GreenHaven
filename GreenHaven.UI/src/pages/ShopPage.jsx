@@ -31,6 +31,16 @@ const ShopPage = () => {
     petFriendly: []
   });
 
+  const clearFilters = () => {
+    setFilters({
+      categories: [],
+      light: [],
+      difficulty: [],
+      petFriendly: []
+    });
+    setSearchTerm('');
+  };
+
   const handleFilterChange = (section, value) => {
     setFilters(prev => {
       const current = prev[section];
@@ -88,6 +98,7 @@ const ShopPage = () => {
         <FilterSidebar 
           filters={filters} 
           onFilterChange={handleFilterChange} 
+          onClearFilters={clearFilters}
           className="hidden md:block w-64 sticky top-20 self-start rounded-r-xl"
         />
 
@@ -114,6 +125,7 @@ const ShopPage = () => {
                 <FilterSidebar 
                   filters={filters} 
                   onFilterChange={handleFilterChange} 
+                  onClearFilters={clearFilters}
                   onClose={() => setIsMobileFilterOpen(false)}
                   className="h-full w-full"
                 />
@@ -122,33 +134,65 @@ const ShopPage = () => {
           )}
         </AnimatePresence>
 
-        <div className="flex-grow p-4 md:p-8">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <div className="flex-grow p-6 md:p-12">
+          <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
             <div className="flex items-center justify-between w-full md:w-auto">
-              <h2 className="text-2xl md:text-3xl font-serif font-bold text-primary">Our Collection ({filteredPlants.length})</h2>
+              <h2 id="shop-collection" className="text-4xl md:text-5xl font-serif font-bold text-primary scroll-mt-24">Our Collection</h2>
               <button 
                 onClick={() => setIsMobileFilterOpen(true)}
-                className="md:hidden flex items-center gap-2 text-gray-600 hover:text-primary bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100"
+                className="md:hidden flex items-center gap-2 text-gray-600 hover:text-primary bg-white px-5 py-3 rounded-full shadow-md border border-gray-200 hover:border-primary transition-all"
               >
                 <Filter size={20} />
-                <span className="font-medium">Filters</span>
+                <span className="font-semibold">Filters</span>
               </button>
             </div>
-            <div className="relative w-full md:w-64">
+            <div className="relative w-full md:w-80">
               <input
                 type="text"
                 placeholder="Search plants..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-full focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-gray-700"
               />
-              <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+              <Search className="absolute left-4 top-3.5 text-gray-400" size={20} />
             </div>
           </div>
+          <p className="text-gray-500 mb-8 text-lg">{filteredPlants.length} plants available</p>
+          
+          {/* Category Pills */}
+          <div className="flex flex-wrap gap-3 mb-10">
+            <button 
+              onClick={() => setFilters(prev => ({ ...prev, categories: [] }))}
+              className={`px-6 py-3 rounded-full font-semibold transition-all ${
+                filters.categories.length === 0 
+                  ? 'bg-primary text-white shadow-lg' 
+                  : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-primary'
+              }`}
+            >
+              All Plants
+            </button>
+            {['Air Purifying', 'Succulents', 'Flowering'].map((category) => (
+              <button 
+                key={category}
+                onClick={() => setFilters(prev => ({ 
+                  ...prev, 
+                  categories: prev.categories.includes(category) ? [] : [category] 
+                }))}
+                className={`px-6 py-3 rounded-full font-semibold transition-all ${
+                  filters.categories.includes(category)
+                    ? 'bg-primary text-white shadow-lg' 
+                    : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-primary'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+
           {filteredPlants.length === 0 ? (
             <p className="text-gray-500 text-lg">No plants match your selected filters.</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredPlants.map((plant) => (
                 <PlantCard 
                   key={plant.id} 

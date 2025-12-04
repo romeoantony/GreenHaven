@@ -13,6 +13,8 @@ namespace GreenHaven.API.Entities
         
         public string? OrderIdentifier { get; set; }
         public string? Notes { get; set; }
+        public string ShippingAddress { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
         public DateTime? LastUpdated { get; set; }
 
         public string Status { get; set; } = "Pending";

@@ -1,6 +1,7 @@
 import React from 'react';
-import { X, Package, Calendar, CreditCard, User } from 'lucide-react';
+import { X, Package, Calendar, CreditCard, User, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 const OrderDetailsModal = ({ order, onClose }) => {
   if (!order) return null;
@@ -102,7 +103,12 @@ const OrderDetailsModal = ({ order, onClose }) => {
                 <tbody className="divide-y divide-gray-50">
                   {order.items?.map((item, idx) => (
                     <tr key={idx}>
-                      <td className="px-4 py-3 text-sm text-gray-900">{item.name}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        <Link to={`/shop/${item.plantId}`} className="text-indigo-600 hover:text-indigo-500 hover:underline flex items-center gap-1">
+                          {item.plantName}
+                          <ExternalLink size={14} />
+                        </Link>
+                      </td>
                       <td className="px-4 py-3 text-sm text-gray-500">{item.quantity}</td>
                       <td className="px-4 py-3 text-sm text-gray-500">₹{item.unitPrice}</td>
                       <td className="px-4 py-3 text-sm font-medium">₹{(item.quantity * item.unitPrice).toFixed(2)}</td>
@@ -116,7 +122,10 @@ const OrderDetailsModal = ({ order, onClose }) => {
                 {order.items?.map((item, idx) => (
                   <div key={idx} className="p-4 flex justify-between items-start">
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{item.name}</p>
+                      <Link to={`/shop/${item.plantId}`} className="text-sm font-medium text-indigo-600 hover:text-indigo-500 hover:underline flex items-center gap-1">
+                        {item.plantName}
+                        <ExternalLink size={14} />
+                      </Link>
                       <p className="text-xs text-gray-500 mt-1">Qty: {item.quantity} x ₹{item.unitPrice}</p>
                     </div>
                     <p className="text-sm font-medium text-gray-900">₹{(item.quantity * item.unitPrice).toFixed(2)}</p>

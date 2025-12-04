@@ -36,7 +36,7 @@ const FilterSection = ({ title, options, selected, onChange, isOpen, toggle }) =
   </div>
 );
 
-const FilterSidebar = ({ filters, onFilterChange, className = "", onClose }) => {
+const FilterSidebar = ({ filters, onFilterChange, onClearFilters, className = "", onClose }) => {
   const [sections, setSections] = useState({
     categories: true,
     light: true,
@@ -47,6 +47,8 @@ const FilterSidebar = ({ filters, onFilterChange, className = "", onClose }) => 
   const toggleSection = (section) => {
     setSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
+
+  const hasActiveFilters = Object.values(filters).some(filter => filter.length > 0);
 
   return (
     <div className={`bg-white p-6 shadow-sm h-full border-r border-gray-100 overflow-y-auto ${className}`}>
@@ -61,6 +63,16 @@ const FilterSidebar = ({ filters, onFilterChange, className = "", onClose }) => 
           </button>
         )}
       </div>
+
+      {hasActiveFilters && (
+        <button 
+          onClick={onClearFilters}
+          className="w-full mb-6 text-sm text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 rounded-lg py-2 transition-colors flex items-center justify-center gap-2"
+        >
+          <X size={14} />
+          Clear All Filters
+        </button>
+      )}
       
       <FilterSection 
         title="Categories" 

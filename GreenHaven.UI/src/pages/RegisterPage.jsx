@@ -57,7 +57,6 @@ const RegisterPage = () => {
               onChange={handleChange}
               className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
               required
-              placeholder="John Doe"
             />
           </div>
           <div>

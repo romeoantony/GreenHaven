@@ -7,7 +7,12 @@ import ShopPage from './pages/ShopPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
-import ComingSoonPage from './pages/ComingSoonPage';
+import AboutPage from './pages/AboutPage';
+import CarePage from './pages/CarePage';
+import ShippingPage from './pages/ShippingPage';
+import FAQPage from './pages/FAQPage';
+import ContactPage from './pages/ContactPage';
+import PrivacyPage from './pages/PrivacyPage';
 import AdminDashboard from './pages/AdminDashboard';
 import PaymentPage from './pages/PaymentPage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
@@ -17,12 +22,34 @@ import Footer from './components/Footer';
 import PageTransition from './components/PageTransition';
 import ErrorBoundary from './components/ErrorBoundary';
 import ErrorPage from './components/ErrorPage';
+import AlreadyLoggedIn from './components/AlreadyLoggedIn';
+
+import ScrollToTop from './components/ScrollToTop';
 
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }) => {
   const { token } = useAuthStore();
   return token ? children : <Navigate to="/login" />;
+};
+
+const AdminRoute = ({ children }) => {
+  const { user, token } = useAuthStore();
+  
+  if (!token) return <Navigate to="/login" />;
+  
+  // Check if user has Admin role
+  // roles can be a string (single role) or array (multiple roles)
+  const isAdmin = Array.isArray(user?.roles) 
+    ? user.roles.includes('Admin')
+    : user?.roles === 'Admin';
+
+  return isAdmin ? children : <ErrorPage />;
+};
+
+const PublicOnlyRoute = ({ children }) => {
+  const { token } = useAuthStore();
+  return token ? <AlreadyLoggedIn /> : children;
 };
 
 function App() {
@@ -32,6 +59,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary>
         <div className="min-h-screen flex flex-col bg-background text-text">
+          <ScrollToTop />
           <Header />
           <CartDrawer />
           <main className="flex-grow container mx-auto px-4 py-8 flex flex-col">
@@ -44,50 +72,54 @@ function App() {
                 } />
                 <Route path="/login" element={
                   <PageTransition>
-                    <LoginPage />
+                    <PublicOnlyRoute>
+                      <LoginPage />
+                    </PublicOnlyRoute>
                   </PageTransition>
                 } />
                 <Route path="/register" element={
                   <PageTransition>
-                    <RegisterPage />
+                    <PublicOnlyRoute>
+                      <RegisterPage />
+                    </PublicOnlyRoute>
                   </PageTransition>
                 } />
                 <Route path="/about" element={
                   <PageTransition>
-                    <ComingSoonPage />
+                    <AboutPage />
                   </PageTransition>
                 } />
                 <Route path="/care" element={
                   <PageTransition>
-                    <ComingSoonPage />
+                    <CarePage />
                   </PageTransition>
                 } />
                 <Route path="/shipping" element={
                   <PageTransition>
-                    <ComingSoonPage />
+                    <ShippingPage />
                   </PageTransition>
                 } />
                 <Route path="/faq" element={
                   <PageTransition>
-                    <ComingSoonPage />
+                    <FAQPage />
                   </PageTransition>
                 } />
                 <Route path="/contact" element={
                   <PageTransition>
-                    <ComingSoonPage />
+                    <ContactPage />
                   </PageTransition>
                 } />
                 <Route path="/privacy" element={
                   <PageTransition>
-                    <ComingSoonPage />
+                    <PrivacyPage />
                   </PageTransition>
                 } />
                 
                 <Route path="/admin" element={
                   <PageTransition>
-                    <ProtectedRoute>
+                    <AdminRoute>
                       <AdminDashboard />
-                    </ProtectedRoute>
+                    </AdminRoute>
                   </PageTransition>
                 } />
                 <Route path="/profile" element={
@@ -99,12 +131,16 @@ function App() {
                 } />
                 <Route path="/payment" element={
                   <PageTransition>
-                    <PaymentPage />
+                    <ProtectedRoute>
+                      <PaymentPage />
+                    </ProtectedRoute>
                   </PageTransition>
                 } />
                 <Route path="/payment-success" element={
                   <PageTransition>
-                    <PaymentSuccessPage />
+                    <ProtectedRoute>
+                      <PaymentSuccessPage />
+                    </ProtectedRoute>
                   </PageTransition>
                 } />
 

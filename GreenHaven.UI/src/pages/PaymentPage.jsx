@@ -5,6 +5,7 @@ import useAuthStore from '../store/useAuthStore';
 import api from '../api/axios';
 import { CreditCard, Lock, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { getImageUrl } from '../utils/imageUtils';
 
 const PaymentPage = () => {
   const { cart, clearCart } = useCartStore();
@@ -19,6 +20,11 @@ const PaymentPage = () => {
     expiry: '',
     cvv: '',
     name: '',
+    address: '',
+    city: '',
+    state: '',
+    zip: '',
+    phone: '',
     orderIdentifier: ''
   });
 
@@ -28,6 +34,11 @@ const PaymentPage = () => {
       expiry: '12/25',
       cvv: '123',
       name: 'Test User',
+      address: '123 Green Street',
+      city: 'Plant City',
+      state: 'Nature State',
+      zip: '12345',
+      phone: '555-0123',
       orderIdentifier: 'Test Order #123'
     });
   };
@@ -47,7 +58,9 @@ const PaymentPage = () => {
           plantId: item.id,
           quantity: item.quantity
         })),
-        orderIdentifier: formData.orderIdentifier
+        orderIdentifier: formData.orderIdentifier,
+        shippingAddress: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zip}`,
+        phoneNumber: formData.phone
       };
 
       // Send order to API
@@ -108,60 +121,128 @@ const PaymentPage = () => {
             </div>
             
             <form onSubmit={handlePayment} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-                <div className="relative">
-                  <input 
-                    type="text" 
-                    name="cardNumber"
-                    value={formData.cardNumber}
-                    onChange={handleInputChange}
-                    placeholder="0000 0000 0000 0000" 
-                    className="w-full pl-4 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                    required
-                  />
-                  <Lock className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-6">
+              {/* Shipping Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-900">Shipping Information</h3>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
                   <input 
                     type="text" 
-                    name="expiry"
-                    value={formData.expiry}
+                    name="address"
+                    value={formData.address}
                     onChange={handleInputChange}
-                    placeholder="MM/YY" 
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-                  <input 
-                    type="text" 
-                    name="cvv"
-                    value={formData.cvv}
-                    onChange={handleInputChange}
-                    placeholder="123" 
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                    required
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <input 
+                      type="text" 
+                      name="city"
+                      value={formData.city}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                    <input 
+                      type="text" 
+                      name="state"
+                      value={formData.state}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
+                    <input 
+                      type="text" 
+                      name="zip"
+                      value={formData.zip}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                    <input 
+                      type="tel" 
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Cardholder Name</label>
-                <input 
-                  type="text" 
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="John Doe" 
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                  required
-                />
+              <div className="border-t border-gray-200 pt-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Card Details</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                    <div className="relative">
+                      <input 
+                        type="text" 
+                        name="cardNumber"
+                        value={formData.cardNumber}
+                        onChange={handleInputChange}
+                        placeholder="0000 0000 0000 0000" 
+                        className="w-full pl-4 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                        required
+                      />
+                      <Lock className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                      <input 
+                        type="text" 
+                        name="expiry"
+                        value={formData.expiry}
+                        onChange={handleInputChange}
+                        placeholder="MM/YY" 
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                      <input 
+                        type="text" 
+                        name="cvv"
+                        value={formData.cvv}
+                        onChange={handleInputChange}
+                        placeholder="123" 
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Cardholder Name</label>
+                    <input 
+                      type="text" 
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                      required
+                    />
+                  </div>
+                </div>
               </div>
               
               <div>
@@ -211,7 +292,7 @@ const PaymentPage = () => {
             <div className="space-y-4 mb-6 max-h-96 overflow-y-auto pr-2">
               {cart.map((item) => (
                 <div key={item.id} className="flex gap-4 bg-white p-4 rounded-xl">
-                  <img src={item.imageUrl} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
+                  <img src={getImageUrl(item.imageUrl)} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
                   <div className="flex-1">
                     <h3 className="font-medium text-gray-900">{item.name}</h3>
                     <p className="text-sm text-gray-500">Qty: {item.quantity}</p>

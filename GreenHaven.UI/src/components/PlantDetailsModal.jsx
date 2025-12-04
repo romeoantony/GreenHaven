@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, ShoppingBag, Sun, Droplets, Sprout, Heart } from 'lucide-react';
 import useCartStore from '../store/useCartStore';
 import { motion } from 'framer-motion';
+import { getImageUrl } from '../utils/imageUtils';
 
 const PlantDetailsModal = ({ plant, onClose }) => {
   const [quantity, setQuantity] = useState(1);
@@ -50,7 +51,7 @@ const PlantDetailsModal = ({ plant, onClose }) => {
         {/* Image Section */}
         <div className="w-full md:w-1/2 h-64 md:h-auto relative bg-gray-100">
           <img 
-            src={plant.imageUrl} 
+            src={getImageUrl(plant.imageUrl)} 
             alt={plant.name} 
             className="w-full h-full object-cover"
           />
@@ -133,9 +134,9 @@ const PlantDetailsModal = ({ plant, onClose }) => {
             </div>
             <button 
               onClick={handleAddToCart}
-              className="flex-grow bg-primary text-white py-3 px-6 rounded-xl font-semibold hover:bg-highlight transition-colors shadow-lg flex items-center justify-center gap-2"
+              className="flex-grow bg-transparent border-2 border-primary text-primary py-4 px-8 rounded-full font-bold text-lg hover:bg-primary hover:text-white transition-all shadow-md flex items-center justify-center gap-3"
             >
-              <ShoppingBag size={20} />
+              <ShoppingBag size={22} />
               Add to Cart
             </button>
           </div>

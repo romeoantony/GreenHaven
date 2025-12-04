@@ -4,8 +4,10 @@ const isLocal = window.location.hostname === 'localhost' || window.location.host
 const prodUrl = 'https://greenhaven-api-gfevg6efa5ghayde.southeastasia-01.azurewebsites.net/api';
 const localUrl = 'http://localhost:5177/api'; // Or import.meta.env.VITE_API_URL if you prefer
 
+export const BASE_URL = isLocal ? localUrl : prodUrl;
+
 const api = axios.create({
-  baseURL: isLocal ? localUrl : prodUrl,
+  baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },

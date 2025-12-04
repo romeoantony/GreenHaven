@@ -37,6 +37,8 @@ namespace GreenHaven.API.Controllers
                 OrderDate = DateTime.UtcNow,
                 Status = "Pending",
                 OrderIdentifier = createOrderDto.OrderIdentifier,
+                ShippingAddress = createOrderDto.ShippingAddress,
+                PhoneNumber = createOrderDto.PhoneNumber,
                 OrderItems = new List<OrderItem>()
             };
 
@@ -92,7 +94,7 @@ namespace GreenHaven.API.Controllers
                 Items = order.OrderItems.Select(oi => new
                 {
                     oi.PlantId,
-                    oi.Plant.Name,
+                    PlantName = oi.Plant != null ? oi.Plant.Name : "Unknown Plant",
                     oi.Quantity,
                     oi.UnitPrice
                 })
@@ -122,7 +124,7 @@ namespace GreenHaven.API.Controllers
                 Items = order.OrderItems.Select(oi => new
                 {
                     oi.PlantId,
-                    oi.Plant.Name,
+                    PlantName = oi.Plant != null ? oi.Plant.Name : "Unknown Plant",
                     oi.Quantity,
                     oi.UnitPrice
                 })
