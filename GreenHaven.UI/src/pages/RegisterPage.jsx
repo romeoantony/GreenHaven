@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
+import { Eye, EyeOff } from 'lucide-react';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     password: '',
-    confirmPassword: '' // Kept for consistency, though not used in backend yet
+    confirmPassword: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -18,6 +21,11 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
     try {
       await api.post('/auth/register', {
         fullName: formData.fullName,
@@ -65,14 +73,63 @@ const RegisterPage = () => {
           </div>
           <div>
             <label className="block text-gray-700">Password</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary pr-10"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-primary"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+            {/* Password Strength Indicators */}
+            {formData.password && (
+              <div className="mt-2 text-xs space-y-1 text-gray-600">
+                <p className={formData.password.length >= 6 ? "text-green-600 font-medium" : ""}>
+                  • At least 6 characters
+                </p>
+                <p className={/[A-Z]/.test(formData.password) ? "text-green-600 font-medium" : ""}>
+                  • One uppercase letter
+                </p>
+                <p className={/[a-z]/.test(formData.password) ? "text-green-600 font-medium" : ""}>
+                  • One lowercase letter
+                </p>
+                <p className={/\d/.test(formData.password) ? "text-green-600 font-medium" : ""}>
+                  • One number
+                </p>
+                <p className={/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? "text-green-600 font-medium" : ""}>
+                  • One special character
+                </p>
+              </div>
+            )}
+          </div>
+          <div>
+            <label className="block text-gray-700">Confirm Password</label>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary pr-10"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-primary"
+              >
+                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
           <button
             type="submit"
