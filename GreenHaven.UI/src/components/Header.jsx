@@ -42,9 +42,14 @@ const Header = () => {
               </Link>
             </div>
           ) : (
-            <Link to="/login" className="text-gray-500 hover:text-primary transition-colors">
-              <User size={20} />
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link to="/login" className="text-primary font-medium hover:text-highlight transition-colors">
+                Login
+              </Link>
+              <Link to="/register" className="bg-primary text-white px-4 py-2 rounded-full hover:bg-opacity-90 transition-all shadow-sm text-sm font-medium">
+                Register
+              </Link>
+            </div>
           )}
           <button 
             className="relative text-gray-500 hover:text-primary transition-colors group"

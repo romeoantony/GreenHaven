@@ -26,7 +26,11 @@ const RegisterPage = () => {
       });
       navigate('/login');
     } catch (err) {
-      setError('Registration failed. Try again.');
+      setError(
+        Array.isArray(err.response?.data)
+          ? err.response.data[0].description
+          : (err.response?.data?.title || 'Registration failed. Try again.')
+      );
     }
   };
 
