@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
+import { ChevronDown, ChevronUp, Filter, X } from 'lucide-react';
 
 const FilterSection = ({ title, options, selected, onChange, isOpen, toggle }) => (
   <div className="border-b border-gray-100 py-4">
@@ -36,7 +36,7 @@ const FilterSection = ({ title, options, selected, onChange, isOpen, toggle }) =
   </div>
 );
 
-const FilterSidebar = ({ filters, onFilterChange }) => {
+const FilterSidebar = ({ filters, onFilterChange, className = "", onClose }) => {
   const [sections, setSections] = useState({
     categories: true,
     light: true,
@@ -49,10 +49,17 @@ const FilterSidebar = ({ filters, onFilterChange }) => {
   };
 
   return (
-    <div className="w-64 bg-white p-6 shadow-sm h-full hidden md:block border-r border-gray-100 sticky top-20 self-start rounded-r-xl">
-      <div className="flex items-center gap-2 mb-6 text-primary border-b border-gray-100 pb-4">
-        <Filter size={20} />
-        <h2 className="text-xl font-serif font-bold">Filters</h2>
+    <div className={`bg-white p-6 shadow-sm h-full border-r border-gray-100 overflow-y-auto ${className}`}>
+      <div className="flex items-center justify-between mb-6 text-primary border-b border-gray-100 pb-4">
+        <div className="flex items-center gap-2">
+          <Filter size={20} />
+          <h2 className="text-xl font-serif font-bold">Filters</h2>
+        </div>
+        {onClose && (
+          <button onClick={onClose} className="md:hidden text-gray-500 hover:text-primary">
+            <X size={24} />
+          </button>
+        )}
       </div>
       
       <FilterSection 

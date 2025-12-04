@@ -1,20 +1,18 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
-import { Search } from 'lucide-react';
+import { Search, Filter } from 'lucide-react';
 import PlantCard from '../components/PlantCard';
 import FilterSidebar from '../components/FilterSidebar';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import HeroSection from '../components/HeroSection';
+import PlantDetailsModal from '../components/PlantDetailsModal';
+import ErrorPage from '../components/ErrorPage';
 
 const fetchPlants = async () => {
   const response = await api.get('/plants');
   return response.data;
 };
-
-import HeroSection from '../components/HeroSection';
-
-import PlantDetailsModal from '../components/PlantDetailsModal';
-import ErrorPage from '../components/ErrorPage';
 
 const ShopPage = () => {
   const { data: plants, isLoading, error } = useQuery({
@@ -24,6 +22,7 @@ const ShopPage = () => {
 
   const [selectedPlant, setSelectedPlant] = React.useState(null);
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = React.useState(false);
 
   const [filters, setFilters] = React.useState({
     categories: [],
@@ -82,13 +81,59 @@ const ShopPage = () => {
   );
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full relative">
       <HeroSection />
-      <div className="flex w-full container mx-auto">
-        <FilterSidebar filters={filters} onFilterChange={handleFilterChange} />
-        <div className="flex-grow p-8">
+      <div className="flex w-full container mx-auto relative">
+        {/* Desktop Sidebar */}
+        <FilterSidebar 
+          filters={filters} 
+          onFilterChange={handleFilterChange} 
+          className="hidden md:block w-64 sticky top-20 self-start rounded-r-xl"
+        />
+
+        {/* Mobile Filter Drawer */}
+        <AnimatePresence>
+          {isMobileFilterOpen && (
+            <>
+              <motion.div
+                key="backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsMobileFilterOpen(false)}
+                className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
+              />
+              <motion.div
+                key="drawer"
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="fixed inset-y-0 left-0 z-50 w-80 md:hidden"
+              >
+                <FilterSidebar 
+                  filters={filters} 
+                  onFilterChange={handleFilterChange} 
+                  onClose={() => setIsMobileFilterOpen(false)}
+                  className="h-full w-full"
+                />
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+        <div className="flex-grow p-4 md:p-8">
           <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-            <h2 className="text-3xl font-serif font-bold text-primary">Our Collection ({filteredPlants.length})</h2>
+            <div className="flex items-center justify-between w-full md:w-auto">
+              <h2 className="text-2xl md:text-3xl font-serif font-bold text-primary">Our Collection ({filteredPlants.length})</h2>
+              <button 
+                onClick={() => setIsMobileFilterOpen(true)}
+                className="md:hidden flex items-center gap-2 text-gray-600 hover:text-primary bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100"
+              >
+                <Filter size={20} />
+                <span className="font-medium">Filters</span>
+              </button>
+            </div>
             <div className="relative w-full md:w-64">
               <input
                 type="text"

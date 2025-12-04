@@ -310,7 +310,8 @@ const ProfilePage = () => {
           <p className="text-gray-500 text-center py-8">No orders found.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            {/* Desktop Table */}
+            <table className="w-full text-left hidden md:table">
               <thead>
                 <tr className="border-b border-gray-100">
                   <th className="pb-4 font-medium text-gray-500">Order ID</th>
@@ -352,6 +353,40 @@ const ProfilePage = () => {
                 ))}
               </tbody>
             </table>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+              {orders.map((order) => (
+                <div key={order.id} className="bg-gray-50 p-4 rounded-lg border border-gray-100 flex flex-col gap-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="font-bold text-primary">#{order.id}</span>
+                      <p className="text-sm text-gray-500">{new Date(order.orderDate).toLocaleDateString()}</p>
+                    </div>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
+                      order.status === 'Delivered' ? 'bg-green-100 text-green-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {order.status}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">{order.itemCount} items</span>
+                    <span className="font-bold text-gray-900">₹{order.totalAmount.toFixed(2)}</span>
+                  </div>
+
+                  <button 
+                    onClick={() => handleViewOrder(order.id)}
+                    className="w-full mt-2 flex items-center justify-center gap-2 bg-white border border-gray-200 py-2 rounded-md text-primary font-medium hover:bg-gray-50 transition-colors"
+                  >
+                    <Eye size={16} />
+                    View Details
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

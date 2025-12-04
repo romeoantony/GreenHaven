@@ -1,16 +1,61 @@
-# React + Vite
+# GreenHaven UI 🎨
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The frontend application for GreenHaven, built with React, Vite, and Tailwind CSS.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Modern UI**: A clean, responsive design using Tailwind CSS and custom components.
+- **State Management**: Utilizes Zustand for global state (cart, auth, UI) and React Query for server state.
+- **Routing**: React Router for seamless navigation.
+- **Animations**: Framer Motion for smooth transitions and interactive elements.
+- **Icons**: Lucide React for a consistent icon set.
 
-## React Compiler
+## Getting Started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Prerequisites
 
-## Expanding the ESLint configuration
+- Node.js (v16 or higher)
+- npm or yarn
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Installation
+
+1.  Navigate to the UI directory:
+
+    ```bash
+    cd GreenHaven.UI
+    ```
+
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+
+### Running Development Server
+
+To start the development server:
+
+```bash
+npm run dev
+```
+
+The application will be available at `http://localhost:5173`.
+
+### Building for Production
+
+To build the application for production:
+
+```bash
+npm run build
+```
+
+## Project Structure
+
+- `src/components`: Reusable UI components.
+- `src/pages`: Page components corresponding to routes.
+- `src/store`: Zustand stores for state management.
+- `src/api`: Axios configuration and API calls.
+- `src/hooks`: Custom React hooks.
+
+## Configuration
+
+The application connects to the backend API. Ensure the API URL is correctly configured in `src/api/axios.js` or via environment variables.

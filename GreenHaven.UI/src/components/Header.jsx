@@ -9,6 +9,7 @@ import useUIStore from '../store/useUIStore';
 const Header = () => {
   const { cart, toggleCart } = useCartStore();
   const { user } = useAuthStore();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
@@ -30,24 +31,32 @@ const Header = () => {
         </nav>
 
         {/* Icons */}
-        <div className="flex items-center space-x-6">
+        <div className="flex items-center space-x-3 md:space-x-6">
           
           {user ? (
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-primary hidden md:block">
                 {user.fullName || user.email}
               </span>
-              <Link to="/profile" className="text-gray-500 hover:text-primary transition-colors">
+              <Link to="/profile" className="text-gray-500 hover:text-primary transition-colors p-1">
                 <User size={20} />
               </Link>
             </div>
           ) : (
-            <Link to="/login" className="text-gray-500 hover:text-primary transition-colors">
-              <User size={20} />
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-primary transition-colors hidden md:block">
+                Login
+              </Link>
+              <Link to="/register" className="text-sm font-medium bg-primary text-white px-4 py-2 rounded-full hover:bg-opacity-90 transition-all hidden md:block">
+                Register
+              </Link>
+              <Link to="/login" className="text-gray-500 hover:text-primary transition-colors md:hidden p-1">
+                <User size={20} />
+              </Link>
+            </div>
           )}
           <button 
-            className="relative text-gray-500 hover:text-primary transition-colors group"
+            className="relative text-gray-500 hover:text-primary transition-colors group p-1"
             onClick={toggleCart}
           >
             <ShoppingBag size={20} />
@@ -59,18 +68,75 @@ const Header = () => {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0, opacity: 0 }}
                   transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                  className="absolute -top-2 -right-2 bg-accent text-primary text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm"
+                  className="absolute -top-1 -right-1 bg-accent text-primary text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full shadow-sm"
                 >
                   {cartCount}
                 </motion.span>
               )}
             </AnimatePresence>
           </button>
-          <button className="md:hidden text-gray-500 hover:text-primary transition-colors">
+          <button 
+            className="md:hidden text-gray-500 hover:text-primary transition-colors p-1"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
             <Menu size={24} />
           </button>
         </div>
       </div>
+
+      {/* Mobile Menu Drawer */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="md:hidden bg-white border-t border-gray-100 overflow-hidden"
+          >
+            <nav className="flex flex-col p-4 space-y-4">
+              <Link 
+                to="/" 
+                className="text-text hover:text-primary font-medium transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Shop
+              </Link>
+              <Link 
+                to="/about" 
+                className="text-text hover:text-primary font-medium transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Our Story
+              </Link>
+              <Link 
+                to="/care" 
+                className="text-text hover:text-primary font-medium transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Plant Care
+              </Link>
+              {!user && (
+                <div className="pt-4 border-t border-gray-100 flex flex-col gap-3">
+                  <Link 
+                    to="/login" 
+                    className="text-center w-full py-2 text-gray-600 hover:text-primary font-medium border border-gray-200 rounded-full"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Login
+                  </Link>
+                  <Link 
+                    to="/register" 
+                    className="text-center w-full py-2 bg-primary text-white font-medium rounded-full hover:bg-opacity-90"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Register
+                  </Link>
+                </div>
+              )}
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };

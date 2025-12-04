@@ -16,7 +16,7 @@ const OrderDetailsModal = ({ order, onClose }) => {
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4"
       >
         <div className="flex justify-between items-center p-6 border-b border-gray-100">
           <h2 className="text-xl font-serif font-bold text-primary flex items-center gap-2">
@@ -89,7 +89,8 @@ const OrderDetailsModal = ({ order, onClose }) => {
           <div>
             <h3 className="text-sm font-medium text-gray-500 mb-3">Items</h3>
             <div className="border border-gray-100 rounded-lg overflow-hidden">
-              <table className="w-full text-left">
+              {/* Desktop Table */}
+              <table className="w-full text-left hidden md:table">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-4 py-2 text-xs font-medium text-gray-500">Product</th>
@@ -109,6 +110,19 @@ const OrderDetailsModal = ({ order, onClose }) => {
                   ))}
                 </tbody>
               </table>
+
+              {/* Mobile List View */}
+              <div className="md:hidden divide-y divide-gray-50">
+                {order.items?.map((item, idx) => (
+                  <div key={idx} className="p-4 flex justify-between items-start">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{item.name}</p>
+                      <p className="text-xs text-gray-500 mt-1">Qty: {item.quantity} x ₹{item.unitPrice}</p>
+                    </div>
+                    <p className="text-sm font-medium text-gray-900">₹{(item.quantity * item.unitPrice).toFixed(2)}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

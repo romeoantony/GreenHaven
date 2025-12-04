@@ -344,17 +344,18 @@ const AdminDashboard = () => {
             transition={{ duration: 0.2 }}
             className="space-y-4"
           >
-            <div className="flex justify-end">
+            <div className="flex justify-end mb-4">
               <button 
                 onClick={handleAddClick}
-                className="bg-primary text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-opacity-90 shadow-md transition-all"
+                className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-opacity-90 shadow-md transition-all text-sm md:text-base"
               >
-                <Plus size={20} /> Add Plant
+                <Plus size={20} /> <span className="hidden sm:inline">Add Plant</span><span className="sm:hidden">Add</span>
               </button>
             </div>
             <div className="bg-white rounded-lg shadow overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
+                {/* Desktop Table */}
+                <table className="min-w-full divide-y divide-gray-200 hidden md:table">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
@@ -396,6 +397,37 @@ const AdminDashboard = () => {
                     )}
                   </tbody>
                 </table>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden divide-y divide-gray-200">
+                  {sortedPlants?.map((plant) => (
+                    <div key={plant.id} className="p-4 flex items-center gap-4">
+                      <img src={plant.imageUrl} alt={plant.name} className="h-16 w-16 rounded-lg object-cover flex-shrink-0" />
+                      <div className="flex-grow min-w-0">
+                        <h3 className="text-sm font-bold text-gray-900 truncate">{plant.name}</h3>
+                        <p className="text-sm text-gray-500">₹{plant.price}</p>
+                        <p className="text-xs text-gray-400 mt-1">Stock: {plant.stockQuantity}</p>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <button 
+                          onClick={() => handleEditClick(plant)}
+                          className="p-2 text-indigo-600 bg-indigo-50 rounded-full hover:bg-indigo-100"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteClick(plant.id)}
+                          className="p-2 text-red-600 bg-red-50 rounded-full hover:bg-red-100"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {sortedPlants?.length === 0 && (
+                    <div className="p-8 text-center text-gray-500">No plants found matching your search.</div>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>
@@ -411,7 +443,8 @@ const AdminDashboard = () => {
             className="bg-white rounded-lg shadow overflow-hidden"
           >
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              {/* Desktop Table */}
+              <table className="min-w-full divide-y divide-gray-200 hidden md:table">
                 <thead className="bg-gray-50">
                   <tr>
                     <SortHeader label="Order ID" column="id" />
@@ -474,6 +507,53 @@ const AdminDashboard = () => {
                   )}
                 </tbody>
               </table>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden divide-y divide-gray-200">
+                {sortedOrders?.map((order) => (
+                  <div key={order.id} className="p-4 flex flex-col gap-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="font-bold text-primary">#{order.id}</span>
+                        <p className="text-xs text-gray-500">{new Date(order.orderDate).toLocaleDateString()}</p>
+                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        order.status === 'Completed' ? 'bg-green-100 text-green-800' : 
+                        order.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {order.status}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center text-sm">
+                      <div className="flex flex-col">
+                         <span className="font-medium text-gray-900">{order.orderIdentifier || 'N/A'}</span>
+                         <span className="text-xs text-gray-500">{order.userEmail}</span>
+                      </div>
+                      <span className="font-bold text-highlight">₹{order.totalAmount}</span>
+                    </div>
+
+                    <div className="flex gap-2 mt-2">
+                       <button 
+                          onClick={() => handleViewOrder(order)}
+                          className="flex-1 py-2 text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 flex justify-center items-center gap-2 text-sm font-medium"
+                        >
+                          <Eye size={16} /> View
+                        </button>
+                        <button 
+                          onClick={() => handleEditOrder(order)}
+                          className="flex-1 py-2 text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 flex justify-center items-center gap-2 text-sm font-medium"
+                        >
+                          <Edit size={16} /> Edit
+                        </button>
+                    </div>
+                  </div>
+                ))}
+                {sortedOrders?.length === 0 && (
+                  <div className="p-8 text-center text-gray-500">No orders found matching your search.</div>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
@@ -488,7 +568,8 @@ const AdminDashboard = () => {
             className="bg-white rounded-lg shadow overflow-hidden"
           >
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              {/* Desktop Table */}
+              <table className="min-w-full divide-y divide-gray-200 hidden md:table">
                 <thead className="bg-gray-50">
                   <tr>
                     <SortHeader label="Full Name" column="fullName" />
@@ -528,6 +609,39 @@ const AdminDashboard = () => {
                   )}
                 </tbody>
               </table>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden divide-y divide-gray-200">
+                {sortedUsers?.map((user) => (
+                  <div key={user.id} className="p-4 flex flex-col gap-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="font-bold text-gray-900">{user.fullName}</span>
+                        <p className="text-sm text-gray-500">{user.email}</p>
+                      </div>
+                      <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">{user.userName}</span>
+                    </div>
+
+                    <div className="flex gap-2 mt-2">
+                       <button 
+                          onClick={() => handleEditUserClick(user)}
+                          className="flex-1 py-2 text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 flex justify-center items-center gap-2 text-sm font-medium"
+                        >
+                          <Edit size={16} /> Edit
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteUserClick(user.id)}
+                          className="flex-1 py-2 text-red-600 bg-red-50 rounded-md hover:bg-red-100 flex justify-center items-center gap-2 text-sm font-medium"
+                        >
+                          <Trash2 size={16} /> Delete
+                        </button>
+                    </div>
+                  </div>
+                ))}
+                {sortedUsers?.length === 0 && (
+                  <div className="p-8 text-center text-gray-500">No users found matching your search.</div>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
