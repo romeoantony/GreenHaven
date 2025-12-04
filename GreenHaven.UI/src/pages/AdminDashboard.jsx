@@ -198,16 +198,16 @@ const AdminDashboard = () => {
   };
 
   // Filtering Logic
-  const filteredPlants = plants?.filter(plant => 
+  const filteredPlants = Array.isArray(plants) ? plants.filter(plant => 
     plant.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) : [];
 
-  const filteredOrders = orders?.filter(order => 
+  const filteredOrders = Array.isArray(orders) ? orders.filter(order => 
     order.id.toString().includes(searchTerm) ||
     (order.orderIdentifier && order.orderIdentifier.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (order.userEmail && order.userEmail.toLowerCase().includes(searchTerm.toLowerCase())) ||
     order.status.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) : [];
 
   const sortedPlants = sortData(filteredPlants);
   const sortedOrders = sortData(filteredOrders);

@@ -14,6 +14,7 @@ const fetchPlants = async () => {
 import HeroSection from '../components/HeroSection';
 
 import PlantDetailsModal from '../components/PlantDetailsModal';
+import ErrorPage from '../components/ErrorPage';
 
 const ShopPage = () => {
   const { data: plants, isLoading, error } = useQuery({
@@ -42,7 +43,10 @@ const ShopPage = () => {
   };
 
   const filteredPlants = React.useMemo(() => {
-    if (!plants) return [];
+    if (!Array.isArray(plants)) {
+      console.log('Plants data is not an array:', plants);
+      return [];
+    }
     return plants.filter(plant => {
       // Search Filter
       if (searchTerm && !plant.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
@@ -68,7 +72,14 @@ const ShopPage = () => {
   }, [plants, filters, searchTerm]);
 
   if (isLoading) return <div className="text-center mt-10">Loading plants...</div>;
-  if (error) return <div className="text-center mt-10 text-red-500">Error loading plants: {error.message}</div>;
+  if (error) return (
+    <ErrorPage 
+      title="Unable to Load Plants" 
+      message="We couldn't fetch the plant collection. This might be due to a network issue or server maintenance."
+      showRetryButton={true}
+      onRetry={() => window.location.reload()}
+    />
+  );
 
   return (
     <div className="flex flex-col w-full">

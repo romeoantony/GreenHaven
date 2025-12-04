@@ -15,6 +15,8 @@ import Header from './components/Header';
 import CartDrawer from './components/CartDrawer';
 import Footer from './components/Footer';
 import PageTransition from './components/PageTransition';
+import ErrorBoundary from './components/ErrorBoundary';
+import ErrorPage from './components/ErrorPage';
 
 const queryClient = new QueryClient();
 
@@ -28,87 +30,96 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen flex flex-col bg-background text-text">
-        <Header />
-        <CartDrawer />
-        <main className="flex-grow container mx-auto px-4 py-8 flex flex-col">
-          <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>
-              <Route path="/" element={
-                <PageTransition>
-                  <ShopPage />
-                </PageTransition>
-              } />
-              <Route path="/login" element={
-                <PageTransition>
-                  <LoginPage />
-                </PageTransition>
-              } />
-              <Route path="/register" element={
-                <PageTransition>
-                  <RegisterPage />
-                </PageTransition>
-              } />
-              <Route path="/about" element={
-                <PageTransition>
-                  <ComingSoonPage />
-                </PageTransition>
-              } />
-              <Route path="/care" element={
-                <PageTransition>
-                  <ComingSoonPage />
-                </PageTransition>
-              } />
-              <Route path="/shipping" element={
-                <PageTransition>
-                  <ComingSoonPage />
-                </PageTransition>
-              } />
-              <Route path="/faq" element={
-                <PageTransition>
-                  <ComingSoonPage />
-                </PageTransition>
-              } />
-              <Route path="/contact" element={
-                <PageTransition>
-                  <ComingSoonPage />
-                </PageTransition>
-              } />
-              <Route path="/privacy" element={
-                <PageTransition>
-                  <ComingSoonPage />
-                </PageTransition>
-              } />
-              
-              <Route path="/admin" element={
-                <PageTransition>
-                  <ProtectedRoute>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                </PageTransition>
-              } />
-              <Route path="/profile" element={
-                <PageTransition>
-                  <ProtectedRoute>
-                    <ProfilePage />
-                  </ProtectedRoute>
-                </PageTransition>
-              } />
-              <Route path="/payment" element={
-                <PageTransition>
-                  <PaymentPage />
-                </PageTransition>
-              } />
-              <Route path="/payment-success" element={
-                <PageTransition>
-                  <PaymentSuccessPage />
-                </PageTransition>
-              } />
-            </Routes>
-          </AnimatePresence>
-        </main>
-        <Footer />
-      </div>
+      <ErrorBoundary>
+        <div className="min-h-screen flex flex-col bg-background text-text">
+          <Header />
+          <CartDrawer />
+          <main className="flex-grow container mx-auto px-4 py-8 flex flex-col">
+            <AnimatePresence mode="wait">
+              <Routes location={location} key={location.pathname}>
+                <Route path="/" element={
+                  <PageTransition>
+                    <ShopPage />
+                  </PageTransition>
+                } />
+                <Route path="/login" element={
+                  <PageTransition>
+                    <LoginPage />
+                  </PageTransition>
+                } />
+                <Route path="/register" element={
+                  <PageTransition>
+                    <RegisterPage />
+                  </PageTransition>
+                } />
+                <Route path="/about" element={
+                  <PageTransition>
+                    <ComingSoonPage />
+                  </PageTransition>
+                } />
+                <Route path="/care" element={
+                  <PageTransition>
+                    <ComingSoonPage />
+                  </PageTransition>
+                } />
+                <Route path="/shipping" element={
+                  <PageTransition>
+                    <ComingSoonPage />
+                  </PageTransition>
+                } />
+                <Route path="/faq" element={
+                  <PageTransition>
+                    <ComingSoonPage />
+                  </PageTransition>
+                } />
+                <Route path="/contact" element={
+                  <PageTransition>
+                    <ComingSoonPage />
+                  </PageTransition>
+                } />
+                <Route path="/privacy" element={
+                  <PageTransition>
+                    <ComingSoonPage />
+                  </PageTransition>
+                } />
+                
+                <Route path="/admin" element={
+                  <PageTransition>
+                    <ProtectedRoute>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  </PageTransition>
+                } />
+                <Route path="/profile" element={
+                  <PageTransition>
+                    <ProtectedRoute>
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  </PageTransition>
+                } />
+                <Route path="/payment" element={
+                  <PageTransition>
+                    <PaymentPage />
+                  </PageTransition>
+                } />
+                <Route path="/payment-success" element={
+                  <PageTransition>
+                    <PaymentSuccessPage />
+                  </PageTransition>
+                } />
+
+                {/* 404 Route */}
+                <Route path="*" element={
+                  <PageTransition>
+                    <ErrorPage />
+                  </PageTransition>
+                } />
+              </Routes>
+            </AnimatePresence>
+          </main>
+          <Footer />
+        </div>
+      </ErrorBoundary>
     </QueryClientProvider>
   );
 }
