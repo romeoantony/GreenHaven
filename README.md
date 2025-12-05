@@ -51,6 +51,12 @@ The project is divided into two main components:
 - **Order Management**: View and manage all customer orders
 - **User Management**: Manage user accounts and roles
 - **Role-Based Access**: Secure admin routes with proper authorization
+- **Toast Notifications**: Real-time feedback for actions like registration and deletion
+
+### User Experience
+
+- **Auto-Login**: Seamless registration process with automatic login
+- **Already Logged In Page**: Prevents logged-in users from accessing login/register pages
 
 ### Design & UX
 

@@ -33,7 +33,8 @@ public class AuthController : ControllerBase
 
         if (result.Succeeded)
         {
-            return Ok(new { message = "User registered successfully" });
+            var token = await GenerateJwtToken(user);
+            return Ok(new { token, message = "User registered successfully" });
         }
 
         return BadRequest(result.Errors);

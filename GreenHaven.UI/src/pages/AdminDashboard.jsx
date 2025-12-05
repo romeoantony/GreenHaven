@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import api from '../api/axios';
 import useAuthStore from '../store/useAuthStore';
 import { Plus, Edit, Trash2, ShoppingBag, Package, Eye, Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
@@ -99,9 +100,12 @@ const AdminDashboard = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['plants']);
+      toast.success('Plant deleted successfully');
     },
     onError: (error) => {
-      alert('Failed to delete plant: ' + (error.response?.data?.title || error.message));
+      const msg = 'Failed to delete plant: ' + (error.response?.data?.title || error.message);
+      alert(msg);
+      toast.error(msg);
     }
   });
 
@@ -116,9 +120,12 @@ const AdminDashboard = () => {
       queryClient.invalidateQueries(['admin-orders']);
       setIsEditOrderOpen(false);
       setSelectedOrder(null);
+      toast.success('Order updated successfully');
     },
     onError: (error) => {
-      alert('Failed to update order: ' + (error.response?.data?.title || error.message));
+      const msg = 'Failed to update order: ' + (error.response?.data?.title || error.message);
+      alert(msg);
+      toast.error(msg);
     }
   });
 
@@ -133,9 +140,12 @@ const AdminDashboard = () => {
       queryClient.invalidateQueries(['users']);
       setIsModalOpen(false);
       setEditingUser(null);
+      toast.success('User updated successfully');
     },
     onError: (error) => {
-      alert('Failed to update user: ' + (error.response?.data?.title || error.message));
+      const msg = 'Failed to update user: ' + (error.response?.data?.title || error.message);
+      alert(msg);
+      toast.error(msg);
     }
   });
 
@@ -148,9 +158,12 @@ const AdminDashboard = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['users']);
+      toast.success('User deleted successfully');
     },
     onError: (error) => {
-      alert('Failed to delete user: ' + (error.response?.data?.title || error.message));
+      const msg = 'Failed to delete user: ' + (error.response?.data?.title || error.message);
+      alert(msg);
+      toast.error(msg);
     }
   });
 
@@ -582,6 +595,7 @@ const AdminDashboard = () => {
                     <SortHeader label="Full Name" column="fullName" />
                     <SortHeader label="Email" column="email" />
                     <SortHeader label="Username" column="userName" />
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
@@ -591,6 +605,13 @@ const AdminDashboard = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.fullName}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.userName}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          user.roles && user.roles.includes('Admin') ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {user.roles && user.roles.includes('Admin') ? 'Admin' : 'User'}
+                        </span>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-4">
                         <button 
                           onClick={() => handleEditUserClick(user)}
@@ -626,7 +647,14 @@ const AdminDashboard = () => {
                         <span className="font-bold text-gray-900">{user.fullName}</span>
                         <p className="text-sm text-gray-500">{user.email}</p>
                       </div>
-                      <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">{user.userName}</span>
+                      <div className="flex flex-col items-end gap-1">
+                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">{user.userName}</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          user.roles && user.roles.includes('Admin') ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {user.roles && user.roles.includes('Admin') ? 'Admin' : 'User'}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="flex gap-2 mt-2">

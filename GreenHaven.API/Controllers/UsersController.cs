@@ -22,13 +22,20 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> GetAllUsers()
     {
         var users = await _userManager.Users.ToListAsync();
-        var userDtos = users.Select(u => new
+        var userDtos = new List<object>();
+
+        foreach (var user in users)
         {
-            u.Id,
-            u.FullName,
-            u.Email,
-            u.UserName
-        });
+            var roles = await _userManager.GetRolesAsync(user);
+            userDtos.Add(new
+            {
+                user.Id,
+                user.FullName,
+                user.Email,
+                user.UserName,
+                Roles = roles
+            });
+        }
         return Ok(userDtos);
     }
 
@@ -49,6 +56,20 @@ public class UsersController : ControllerBase
 
         if (result.Succeeded)
         {
+            // Handle Role Update
+            if (!string.IsNullOrEmpty(model.Role))
+            {
+                var currentRoles = await _userManager.GetRolesAsync(user);
+                if (model.Role == "Admin" && !currentRoles.Contains("Admin"))
+                {
+                    await _userManager.AddToRoleAsync(user, "Admin");
+                }
+                else if (model.Role == "User" && currentRoles.Contains("Admin"))
+                {
+                    await _userManager.RemoveFromRoleAsync(user, "Admin");
+                }
+            }
+
             return Ok(new { message = "User updated successfully" });
         }
 
@@ -84,4 +105,5 @@ public class UpdateUserDto
 {
     public string FullName { get; set; }
     public string Email { get; set; }
+    public string Role { get; set; }
 }

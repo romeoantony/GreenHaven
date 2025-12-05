@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
 import { Eye, EyeOff } from 'lucide-react';
+import useAuthStore from '../store/useAuthStore';
+import toast from 'react-hot-toast';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -27,23 +29,36 @@ const RegisterPage = () => {
     }
 
     try {
-      await api.post('/auth/register', {
+      const response = await api.post('/auth/register', {
         fullName: formData.fullName,
         email: formData.email,
         password: formData.password,
       });
-      navigate('/login');
+      
+      // Auto-login if token is present
+      if (response.data.token) {
+        // Navigate first to avoid PublicOnlyRoute unmounting/redirecting issues
+        navigate('/', { replace: true });
+        
+        // Small delay to ensure navigation has started/completed before state update triggers re-renders
+        setTimeout(() => {
+          useAuthStore.getState().setToken(response.data.token);
+          toast.success('Registration successful! You are now logged in.');
+        }, 50);
+      } else {
+        navigate('/login');
+      }
     } catch (err) {
-      setError(
-        Array.isArray(err.response?.data)
+      const errorMessage = Array.isArray(err.response?.data)
           ? err.response.data[0].description
-          : (err.response?.data?.title || 'Registration failed. Try again.')
-      );
+          : (err.response?.data?.title || 'Registration failed. Try again.');
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-[80vh]">
+    <div className="flex justify-center items-center py-12 px-4">
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-primary mb-6 text-center">Register</h2>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
