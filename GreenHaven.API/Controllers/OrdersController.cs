@@ -23,52 +23,70 @@ namespace GreenHaven.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto createOrderDto)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null) return Unauthorized();
-
-            if (createOrderDto.Items == null || !createOrderDto.Items.Any())
+            Console.WriteLine($"Received CreateOrder Request. Items: {createOrderDto?.Items?.Count ?? 0}, Address: {createOrderDto?.ShippingAddress}, Phone: {createOrderDto?.PhoneNumber}");
+            if (createOrderDto?.Items != null)
             {
-                return BadRequest("Order must contain at least one item.");
+                foreach(var item in createOrderDto.Items)
+                {
+                    Console.WriteLine($"Item - PlantId: {item.PlantId}, Qty: {item.Quantity}");
+                }
             }
 
-            var order = new Order
+            try
             {
-                UserId = userId,
-                OrderDate = DateTime.UtcNow,
-                Status = "Pending",
-                OrderIdentifier = createOrderDto.OrderIdentifier,
-                ShippingAddress = createOrderDto.ShippingAddress,
-                PhoneNumber = createOrderDto.PhoneNumber,
-                OrderItems = new List<OrderItem>()
-            };
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null) return Unauthorized();
 
-            decimal totalAmount = 0;
-
-            foreach (var itemDto in createOrderDto.Items)
-            {
-                var plant = await _context.Plants.FindAsync(itemDto.PlantId);
-                if (plant == null)
+                if (createOrderDto.Items == null || !createOrderDto.Items.Any())
                 {
-                    return BadRequest($"Plant with ID {itemDto.PlantId} not found.");
+                    return BadRequest("Order must contain at least one item.");
                 }
 
-                var orderItem = new OrderItem
+                var order = new Order
                 {
-                    PlantId = plant.Id,
-                    Quantity = itemDto.Quantity,
-                    UnitPrice = plant.Price
+                    UserId = userId,
+                    OrderDate = DateTime.UtcNow,
+                    Status = "Pending",
+                    OrderIdentifier = createOrderDto.OrderIdentifier,
+                    ShippingAddress = createOrderDto.ShippingAddress,
+                    PhoneNumber = createOrderDto.PhoneNumber,
+                    OrderItems = new List<OrderItem>()
                 };
 
-                order.OrderItems.Add(orderItem);
-                totalAmount += plant.Price * itemDto.Quantity;
+                decimal totalAmount = 0;
+
+                foreach (var itemDto in createOrderDto.Items)
+                {
+                    var plant = await _context.Plants.FindAsync(itemDto.PlantId);
+                    if (plant == null)
+                    {
+                        return BadRequest($"Plant with ID {itemDto.PlantId} not found.");
+                    }
+
+                    var orderItem = new OrderItem
+                    {
+                        PlantId = plant.Id,
+                        Quantity = itemDto.Quantity,
+                        UnitPrice = plant.Price
+                    };
+
+                    order.OrderItems.Add(orderItem);
+                    totalAmount += plant.Price * itemDto.Quantity;
+                }
+
+                order.TotalAmount = totalAmount;
+
+                _context.Orders.Add(order);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, new { order.Id, order.TotalAmount, order.Status });
             }
-
-            order.TotalAmount = totalAmount;
-
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, new { order.Id, order.TotalAmount, order.Status });
+            catch (Exception ex)
+            {
+                // Log the inner exception if it exists
+                var innerMessage = ex.InnerException != null ? ex.InnerException.Message : "";
+                return StatusCode(500, new { message = "Internal Server Error during order creation", error = ex.Message, innerError = innerMessage, stack = ex.StackTrace });
+            }
         }
 
         [HttpGet("{id}")]
@@ -104,31 +122,38 @@ namespace GreenHaven.API.Controllers
         [HttpGet("any/{id}")]
         public async Task<IActionResult> GetOrderAdmin(int id)
         {
-            // Admin only endpoint to fetch any order details
-            var order = await _context.Orders
-                .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Plant)
-                .FirstOrDefaultAsync(o => o.Id == id);
-
-            if (order == null) return NotFound();
-
-            return Ok(new
+            try
             {
-                order.Id,
-                order.OrderDate,
-                order.TotalAmount,
-                order.Status,
-                order.OrderIdentifier,
-                order.Notes,
-                order.LastUpdated,
-                Items = order.OrderItems.Select(oi => new
+                // Admin only endpoint to fetch any order details
+                var order = await _context.Orders
+                    .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Plant)
+                    .FirstOrDefaultAsync(o => o.Id == id);
+
+                if (order == null) return NotFound();
+
+                return Ok(new
                 {
-                    oi.PlantId,
-                    PlantName = oi.Plant != null ? oi.Plant.Name : "Unknown Plant",
-                    oi.Quantity,
-                    oi.UnitPrice
-                })
-            });
+                    order.Id,
+                    order.OrderDate,
+                    order.TotalAmount,
+                    order.Status,
+                    order.OrderIdentifier,
+                    order.Notes,
+                    order.LastUpdated,
+                    Items = order.OrderItems.Select(oi => new
+                    {
+                        oi.PlantId,
+                        PlantName = oi.Plant != null ? oi.Plant.Name : "Unknown Plant",
+                        oi.Quantity,
+                        oi.UnitPrice
+                    })
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Internal Server Error", error = ex.Message, stack = ex.StackTrace });
+            }
         }
         
         [HttpGet]

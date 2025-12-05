@@ -15,7 +15,7 @@ const useAuthStore = create(
               email: decoded.email,
               id: decoded.sub, // sub is now the ID
               fullName: decoded.FullName,
-              roles: decoded.role || []
+              roles: decoded.role || decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || []
             };
             set({ token, user });
           } catch (error) {

@@ -54,14 +54,16 @@ const PaymentPage = () => {
     try {
       // Create order payload
       const orderPayload = {
-        items: cart.map(item => ({
-          plantId: item.id,
+        Items: cart.map(item => ({
+          plantId: item.id || item.Id,
           quantity: item.quantity
         })),
         orderIdentifier: formData.orderIdentifier,
         shippingAddress: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zip}`,
         phoneNumber: formData.phone
       };
+
+      console.log("Sending Order Payload:", JSON.stringify(orderPayload, null, 2));
 
       // Send order to API
       await api.post('/orders', orderPayload, {

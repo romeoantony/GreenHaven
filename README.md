@@ -6,6 +6,20 @@ GreenHaven is a modern e-commerce platform dedicated to bringing nature indoors.
 
 - **Frontend**: [https://orange-river-0ae9c2100.3.azurestaticapps.net/](https://orange-river-0ae9c2100.3.azurestaticapps.net/)
 
+## 📸 Screenshots
+
+### Homepage & Plant Catalog
+
+![Homepage with hero section and plant grid](https://raw.githubusercontent.com/romeoantony/GreenHaven/main/.github/screenshots/homepage_hero_grid.png)
+
+### Plant Grid View
+
+![Scrolled plant catalog showing variety of plants](https://raw.githubusercontent.com/romeoantony/GreenHaven/main/.github/screenshots/homepage_scrolled_grid.png)
+
+### Plant Details Modal
+
+![Plant details modal with care information](https://raw.githubusercontent.com/romeoantony/GreenHaven/main/.github/screenshots/plant_details_modal.png)
+
 ## Project Structure
 
 The project is divided into two main components:

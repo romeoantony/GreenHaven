@@ -164,10 +164,10 @@ const AdminDashboard = () => {
     setIsModalOpen(true);
   };
 
+  const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false, type: null, id: null });
+
   const handleDeleteClick = (id) => {
-    if (window.confirm('Are you sure you want to delete this plant?')) {
-      deleteMutation.mutate(id);
-    }
+    setDeleteConfirmation({ isOpen: true, type: 'plant', id });
   };
 
   const handleEditUserClick = (user) => {
@@ -176,9 +176,16 @@ const AdminDashboard = () => {
   };
 
   const handleDeleteUserClick = (id) => {
-    if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-      deleteUserMutation.mutate(id);
+    setDeleteConfirmation({ isOpen: true, type: 'user', id });
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirmation.type === 'plant') {
+      deleteMutation.mutate(deleteConfirmation.id);
+    } else if (deleteConfirmation.type === 'user') {
+      deleteUserMutation.mutate(deleteConfirmation.id);
     }
+    setDeleteConfirmation({ isOpen: false, type: null, id: null });
   };
 
   const handleViewOrder = (order) => {
@@ -701,6 +708,43 @@ const AdminDashboard = () => {
             onCancel={() => setIsEditOrderOpen(false)}
             isLoading={updateOrderMutation.isPending}
           />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {deleteConfirmation.isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md"
+            >
+              <h3 className="text-xl font-bold mb-4 text-gray-900">Confirm Deletion</h3>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete this {deleteConfirmation.type}? This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-4">
+                <button
+                  onClick={() => setDeleteConfirmation({ isOpen: false, type: null, id: null })}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium shadow-sm"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
