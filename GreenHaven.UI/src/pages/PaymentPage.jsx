@@ -63,8 +63,6 @@ const PaymentPage = () => {
         phoneNumber: formData.phone
       };
 
-      console.log("Sending Order Payload:", JSON.stringify(orderPayload, null, 2));
-
       // Send order to API
       await api.post('/orders', orderPayload, {
         headers: { Authorization: `Bearer ${token}` }

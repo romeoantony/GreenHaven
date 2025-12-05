@@ -52,8 +52,7 @@ const ShopPage = () => {
   };
 
   const filteredPlants = React.useMemo(() => {
-    if (!Array.isArray(plants)) {
-      console.log('Plants data is not an array:', plants);
+    if (!plants || !Array.isArray(plants)) {
       return [];
     }
     return plants.filter(plant => {
