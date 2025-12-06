@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import useAuthStore from '../store/useAuthStore';
-import { Plus, Edit, Trash2, ShoppingBag, Package, Eye, Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Edit, Trash2, ShoppingBag, Package, Eye, Search, ArrowUpDown, ArrowUp, ArrowDown, MessageCircle, Send } from 'lucide-react';
+import { chatService } from '../api/chatService';
 import { motion, AnimatePresence } from 'framer-motion';
 import PlantForm from '../components/PlantForm';
 import OrderDetailsModal from '../components/OrderDetailsModal';
@@ -23,6 +24,11 @@ const AdminDashboard = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
   const [isEditOrderOpen, setIsEditOrderOpen] = useState(false);
+  
+  // Messaging State
+  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [replyMessage, setReplyMessage] = useState('');
+  const messagesEndRef = useRef(null);
   
   // Fetch Plants
   const { data: plants } = useQuery({
@@ -56,6 +62,44 @@ const AdminDashboard = () => {
     },
     enabled: activeTab === 'users'
   });
+
+  // Fetch Conversations
+  const { data: conversations = [] } = useQuery({
+    queryKey: ['conversations'],
+    queryFn: chatService.getConversations,
+    enabled: activeTab === 'messages',
+    refetchInterval: 5000,
+  });
+
+  // Fetch Selected Conversation Messages
+  const { data: conversationMessages = [] } = useQuery({
+    queryKey: ['conversation', selectedConversation?.userId],
+    queryFn: () => chatService.getConversation(selectedConversation.userId),
+    enabled: !!selectedConversation,
+    refetchInterval: 3000,
+  });
+
+  // Send Reply Mutation
+  const replyMutation = useMutation({
+    mutationFn: (content) => chatService.sendMessage(content, selectedConversation.userId),
+    onSuccess: () => {
+      setReplyMessage('');
+      queryClient.invalidateQueries(['conversation', selectedConversation?.userId]);
+      queryClient.invalidateQueries(['conversations']);
+    },
+  });
+
+  useEffect(() => {
+    if (selectedConversation) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [conversationMessages, selectedConversation]);
+
+  const handleSendMessage = (e) => {
+    e.preventDefault();
+    if (!replyMessage.trim()) return;
+    replyMutation.mutate(replyMessage);
+  };
 
   // Create Mutation
   const createMutation = useMutation({
@@ -161,8 +205,20 @@ const AdminDashboard = () => {
       toast.success('User deleted successfully');
     },
     onError: (error) => {
-      const msg = 'Failed to delete user: ' + (error.response?.data?.title || error.message);
-      alert(msg);
+      let msg = 'Failed to delete user.';
+      
+      if (error.response) {
+        if (error.response.status === 404) {
+          msg = 'User not found or already deleted.';
+        } else if (typeof error.response.data === 'string') {
+          msg = error.response.data;
+        } else if (error.response.data?.title) {
+          msg = error.response.data.title;
+        }
+      } else {
+        msg = error.message;
+      }
+      
       toast.error(msg);
     }
   });
@@ -349,6 +405,12 @@ const AdminDashboard = () => {
               className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'users' ? 'bg-white shadow text-primary' : 'text-gray-500 hover:text-gray-700'}`}
             >
               Users
+            </button>
+            <button
+              onClick={() => { setActiveTab('messages'); setSearchTerm(''); }}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'messages' ? 'bg-white shadow text-primary' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              Messages
             </button>
           </div>
         </div>
@@ -677,6 +739,109 @@ const AdminDashboard = () => {
                   <div className="p-8 text-center text-gray-500">No users found matching your search.</div>
                 )}
               </div>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'messages' && (
+          <motion.div
+            key="messages"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="bg-white rounded-lg shadow overflow-hidden h-[600px] flex"
+          >
+            {/* Conversations List */}
+            <div className="w-1/3 border-r border-gray-200 flex flex-col">
+              <div className="p-4 border-b border-gray-200 bg-gray-50">
+                <h3 className="font-semibold text-gray-700">Conversations</h3>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {conversations.length === 0 ? (
+                  <div className="p-4 text-center text-gray-500">No conversations yet.</div>
+                ) : (
+                  conversations.map((conv) => (
+                    <div
+                      key={conv.userId}
+                      onClick={() => setSelectedConversation(conv)}
+                      className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
+                        selectedConversation?.userId === conv.userId ? 'bg-blue-50' : ''
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="font-medium text-gray-900 truncate">{conv.userName}</span>
+                        {conv.unreadCount > 0 && (
+                          <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full">
+                            {conv.unreadCount}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500 truncate">{conv.lastMessage}</p>
+                      <span className="text-xs text-gray-400 mt-1 block">
+                        {new Date(conv.lastMessageTime).toLocaleString()}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Chat Window */}
+            <div className="flex-1 flex flex-col bg-gray-50">
+              {selectedConversation ? (
+                <>
+                  <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center shadow-sm">
+                    <h3 className="font-bold text-gray-800">{selectedConversation.userName}</h3>
+                    <span className="text-xs text-gray-500">User ID: {selectedConversation.userId}</span>
+                  </div>
+                  
+                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                    {conversationMessages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`flex ${msg.isFromAdmin ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[70%] p-3 rounded-lg text-sm shadow-sm ${
+                            msg.isFromAdmin
+                              ? 'bg-primary text-white rounded-tr-none'
+                              : 'bg-white border border-gray-200 text-gray-800 rounded-tl-none'
+                          }`}
+                        >
+                          <p>{msg.content}</p>
+                          <span className={`text-[10px] block mt-1 ${msg.isFromAdmin ? 'text-green-100' : 'text-gray-400'}`}>
+                            {new Date(msg.timestamp).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    <div ref={messagesEndRef} />
+                  </div>
+
+                  <form onSubmit={handleSendMessage} className="p-4 bg-white border-t border-gray-200 flex gap-2">
+                    <input
+                      type="text"
+                      value={replyMessage}
+                      onChange={(e) => setReplyMessage(e.target.value)}
+                      placeholder="Type a reply..."
+                      className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    />
+                    <button
+                      type="submit"
+                      disabled={replyMutation.isPending || !replyMessage.trim()}
+                      className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      <Send size={18} /> Send
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <div className="flex-1 flex flex-col justify-center items-center text-gray-400">
+                  <MessageCircle size={48} className="mb-4 opacity-20" />
+                  <p>Select a conversation to start messaging</p>
+                </div>
+              )}
             </div>
           </motion.div>
         )}

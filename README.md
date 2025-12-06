@@ -43,6 +43,7 @@ The project is divided into two main components:
 - **Order History**: View detailed order history with product information
 - **Shopping Cart**: Smooth cart drawer with animated item management
 - **Secure Checkout**: Protected payment flow with authentication
+- **Messaging System**: Real-time support chat widget for direct communication with admins
 
 ### Admin Features
 
@@ -71,6 +72,9 @@ The project is divided into two main components:
 
 To get the project running locally, you will need to set up both the frontend and backend.
 
+> [!NOTE]
+> For detailed architecture, debugging tips, and deployment instructions, please refer to the [**Developer Documentation**](./DEVELOPER_README.md).
+
 ### Prerequisites
 
 - Node.js (v16 or higher)
@@ -90,6 +94,10 @@ To get the project running locally, you will need to set up both the frontend an
 2. Install dependencies: `npm install`
 3. Start development server: `npm run dev`
 4. Open browser to `http://localhost:5174`
+
+## ☁️ Deployment
+
+For detailed deployment instructions (Azure App Service, Environment Variables, etc.), please see the [**Deployment Section**](./DEVELOPER_README.md#%EF%B8%8F-deployment) in the Developer README.
 
 ## 🛠️ Technologies Used
 

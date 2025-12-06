@@ -12,10 +12,12 @@ namespace GreenHaven.API.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly GreenHaven.API.Data.AppDbContext _context;
 
-    public UsersController(UserManager<ApplicationUser> userManager)
+    public UsersController(UserManager<ApplicationUser> userManager, GreenHaven.API.Data.AppDbContext context)
     {
         _userManager = userManager;
+        _context = context;
     }
 
     [HttpGet]
@@ -90,14 +92,30 @@ public class UsersController : ControllerBase
         // var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         // if (currentUserId == id) return BadRequest("Cannot delete your own account");
 
-        var result = await _userManager.DeleteAsync(user);
-
-        if (result.Succeeded)
+        try
         {
-            return Ok(new { message = "User deleted successfully" });
-        }
+            var result = await _userManager.DeleteAsync(user);
 
-        return BadRequest(result.Errors);
+            if (result.Succeeded)
+            {
+                return Ok(new { message = "User deleted successfully" });
+            }
+
+            return BadRequest(result.Errors);
+        }
+        catch (DbUpdateException ex)
+        {
+            // Check for foreign key constraint violation
+            if (ex.InnerException != null && ex.InnerException.Message.Contains("REFERENCE constraint"))
+            {
+                return BadRequest("Cannot delete user because they have associated data (e.g., chat messages or orders).");
+            }
+            return StatusCode(500, "An error occurred while deleting the user.");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "An internal server error occurred.");
+        }
     }
 }
 

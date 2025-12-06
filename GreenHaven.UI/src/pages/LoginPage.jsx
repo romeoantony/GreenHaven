@@ -19,8 +19,8 @@ const LoginPage = () => {
         email,
         password,
       });
-      setToken(response.data.token);
-      navigate('/');
+      useAuthStore.getState().setToken(response.data.token);
+      // navigate('/', { replace: true }); // Handled by PublicOnlyRoute
     } catch (err) {
       setError('Invalid email or password');
     }

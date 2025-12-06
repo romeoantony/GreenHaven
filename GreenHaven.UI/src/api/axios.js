@@ -13,4 +13,31 @@ const api = axios.create({
   },
 });
 
+// Add a request interceptor to inject the token
+api.interceptors.request.use(
+  (config) => {
+    try {
+      const storage = localStorage.getItem('greenhaven-auth');
+      if (storage) {
+        const { state } = JSON.parse(storage);
+        const token = state?.token;
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+          if (window.log) window.log(`Axios: Attached token ${token.substring(0, 10)}...`);
+        } else {
+          if (window.log) window.log('Axios: No token found in storage state');
+        }
+      } else {
+        if (window.log) window.log('Axios: No storage found');
+      }
+    } catch (e) {
+      console.error('Error parsing auth token', e);
+      if (window.log) window.log(`Axios: Error parsing token: ${e.message}`);
+    }
+    if (window.log) window.log(`Axios: ${config.method.toUpperCase()} ${config.url}`);
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 export default api;

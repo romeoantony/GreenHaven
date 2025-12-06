@@ -28,6 +28,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ErrorPage from './components/ErrorPage';
 import AlreadyLoggedIn from './components/AlreadyLoggedIn';
 import ScrollToTop from './components/ScrollToTop';
+import ChatWidget from './components/ChatWidget';
 
 const queryClient = new QueryClient();
 
@@ -47,19 +48,52 @@ const AdminRoute = ({ children }) => {
     ? user.roles.includes('Admin')
     : user?.roles === 'Admin';
 
-  return isAdmin ? children : <ErrorPage />;
+  return isAdmin ? children : <Navigate to="/" replace />;
 };
 
 const PublicOnlyRoute = ({ children }) => {
   const { token } = useAuthStore();
-  return token ? <AlreadyLoggedIn /> : children;
+  return token ? <Navigate to="/" replace /> : children;
 };
+
+// Debug Logger
+window.debugLogs = [];
+window.log = (msg) => {
+  if (!import.meta.env.DEV) return; // Only log in development
+  const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+  const logMsg = `[${timestamp}] ${msg}`;
+  window.debugLogs.push(logMsg);
+  console.log(logMsg);
+  const el = document.getElementById('debug-log-content');
+  if (el) el.innerText = window.debugLogs.join('\n');
+};
+
+const DebugOverlay = () => (
+  <div style={{
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    width: '400px',
+    height: '300px',
+    background: 'rgba(0,0,0,0.8)',
+    color: '#0f0',
+    overflow: 'auto',
+    zIndex: 9999,
+    fontSize: '12px',
+    padding: '10px',
+    pointerEvents: 'none'
+  }}>
+    <pre id="debug-log-content">{window.debugLogs.join('\n')}</pre>
+  </div>
+);
 
 function App() {
   const location = useLocation();
 
   return (
     <QueryClientProvider client={queryClient}>
+      {import.meta.env.DEV && <DebugOverlay />}
+
       <ErrorBoundary>
         <div className="min-h-screen flex flex-col bg-background text-text">
           <Toaster position="top-right" />
@@ -159,6 +193,7 @@ function App() {
               </Suspense>
             </AnimatePresence>
           </main>
+          <ChatWidget />
           <Footer />
         </div>
       </ErrorBoundary>

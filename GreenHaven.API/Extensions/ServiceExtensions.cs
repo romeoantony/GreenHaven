@@ -14,7 +14,7 @@ public static class ServiceExtensions
     {
         services.AddCors(options =>
         {
-            var allowedOrigins = configuration["AllowedOrigins"]?.Split(",") ?? new[] { "http://localhost:5173", "http://localhost:5174", "http://localhost:5175" };
+            var allowedOrigins = configuration["AllowedOrigins"]?.Split(",") ?? new[] { "http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176" };
             
             options.AddPolicy("AllowReactApp",
                 builder => builder

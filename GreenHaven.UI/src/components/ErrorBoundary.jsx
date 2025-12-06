@@ -13,6 +13,8 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     console.error("Uncaught error:", error, errorInfo);
+    this.setState({ errorInfo });
+    if (window.log) window.log(`ErrorBoundary: ${error.toString()}`);
   }
 
   handleRetry = () => {
@@ -25,7 +27,16 @@ class ErrorBoundary extends React.Component {
       return (
         <ErrorPage 
           title="Something went wrong" 
-          message="We encountered an unexpected error. Please try refreshing the page."
+          message={
+            <div>
+              <p>We encountered an unexpected error. Please try refreshing the page.</p>
+              <pre className="text-left bg-gray-100 p-4 mt-4 overflow-auto text-xs text-red-600">
+                {this.state.error && this.state.error.toString()}
+                <br />
+                {this.state.errorInfo && this.state.errorInfo.componentStack}
+              </pre>
+            </div>
+          }
           showRetryButton={true}
           onRetry={this.handleRetry}
         />

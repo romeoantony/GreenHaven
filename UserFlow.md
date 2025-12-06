@@ -16,11 +16,13 @@ A standard user who browses and purchases plants.
 - **Checkout**: Place an order for items in the cart.
 - **View Order History**: See a list of past orders and their status.
 - **Manage Profile**: Update personal information (Name, Email, Address).
+- **Contact Support**: Chat with administrators via the support widget.
 
 **Key Workflows:**
 
 1.  **Purchase Flow**: Browse -> Add to Cart -> Checkout -> Payment -> Order Confirmation.
 2.  **History Flow**: Profile -> My Orders -> View Order Details.
+3.  **Support Flow**: Click Chat Icon -> Send Message -> Receive Admin Reply.
 
 ### 2. Admin
 
@@ -34,13 +36,15 @@ A privileged user who manages the store inventory and oversees orders.
   - **Edit Plant**: Update existing plant details (price, stock, description).
   - **Delete Plant**: Remove plants from the store.
 - **View All Orders**: Access a dashboard showing orders from ALL users.
+- **Manage Support Chats**: View and reply to user messages via the Messages tab.
 - **Order Identification**: When placing an order (e.g., on behalf of a client), Admins can add a custom "Order Reference" or "Customer Name" to track it easily.
 
 **Key Workflows:**
 
 1.  **Inventory Management**: Admin Dashboard -> Plants Tab -> Add/Edit/Delete.
 2.  **Order Oversight**: Admin Dashboard -> Orders Tab -> View All Orders.
-3.  **Client Order**: Shop -> Add to Cart -> Checkout -> Enter "Client Name" in Reference field -> Payment.
+3.  **Support Management**: Admin Dashboard -> Messages Tab -> Select Conversation -> Reply.
+4.  **Client Order**: Shop -> Add to Cart -> Checkout -> Enter "Client Name" in Reference field -> Payment.
 
 ## Permissions Matrix
 
@@ -53,6 +57,8 @@ A privileged user who manages the store inventory and oversees orders.
 | **View All Orders**  |  ❌  |                             ✅                             |
 | **Add/Edit Plants**  |  ❌  |                             ✅                             |
 | **Delete Plants**    |  ❌  |                             ✅                             |
+| **Support Chat**     |  ✅  |     ❌ (Admins use Dashboard to reply, not the widget)     |
+| **Manage Messages**  |  ❌  |                             ✅                             |
 | **Custom Order Ref** |  ❌  | ✅ (UI enabled for all, but primarily for Admin use cases) |
 
 > [!NOTE]

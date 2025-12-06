@@ -37,14 +37,9 @@ const RegisterPage = () => {
       
       // Auto-login if token is present
       if (response.data.token) {
-        // Navigate first to avoid PublicOnlyRoute unmounting/redirecting issues
-        navigate('/', { replace: true });
-        
-        // Small delay to ensure navigation has started/completed before state update triggers re-renders
-        setTimeout(() => {
-          useAuthStore.getState().setToken(response.data.token);
-          toast.success('Registration successful! You are now logged in.');
-        }, 50);
+        useAuthStore.getState().setToken(response.data.token);
+        toast.success('Registration successful! You are now logged in.');
+        // navigate('/', { replace: true }); // Handled by PublicOnlyRoute
       } else {
         navigate('/login');
       }
