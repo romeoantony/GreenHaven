@@ -46,15 +46,15 @@ const Footer = () => {
             <ul className="space-y-4 text-gray-300 text-sm">
               <li className="flex items-start gap-3">
                 <MapPin size={18} className="mt-0.5 text-highlight" />
-                <span>123 Green Street, <br />Botanical Garden, NY 10001</span>
+                <span>Trivandrum, India</span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={18} className="text-highlight" />
-                <span>+1 (555) 123-4567</span>
+                <span>+91 9999999999</span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={18} className="text-highlight" />
-                <span>hello@greenhaven.com</span>
+                <span>support@greenhaven.com</span>
               </li>
             </ul>
           </div>

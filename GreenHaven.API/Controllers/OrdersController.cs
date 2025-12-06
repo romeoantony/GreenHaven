@@ -113,6 +113,7 @@ namespace GreenHaven.API.Controllers
                 {
                     oi.PlantId,
                     PlantName = oi.Plant != null ? oi.Plant.Name : "Unknown Plant",
+                    ImageUrl = oi.Plant != null ? oi.Plant.ImageUrl : null,
                     oi.Quantity,
                     oi.UnitPrice
                 })
@@ -145,6 +146,7 @@ namespace GreenHaven.API.Controllers
                     {
                         oi.PlantId,
                         PlantName = oi.Plant != null ? oi.Plant.Name : "Unknown Plant",
+                        ImageUrl = oi.Plant != null ? oi.Plant.ImageUrl : null,
                         oi.Quantity,
                         oi.UnitPrice
                     })

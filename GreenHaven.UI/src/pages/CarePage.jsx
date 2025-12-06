@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Sun, Droplets, Sprout, Thermometer, Wind, Bug } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const CarePage = () => {
   const careTips = [
@@ -37,7 +38,7 @@ const CarePage = () => {
   ];
 
   return (
-    <div className="bg-white min-h-screen py-12 px-4">
+    <div className="bg-white min-h-[calc(100vh-10rem)] py-12 px-4 flex flex-col justify-center">
       <div className="max-w-6xl mx-auto">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -77,9 +78,9 @@ const CarePage = () => {
             <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
               Every plant is unique. Check the specific care instructions on each plant's product page or contact our team for personalized help.
             </p>
-            <a href="/contact" className="inline-block bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+            <Link to="/contact" className="inline-block bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
               Contact Support
-            </a>
+            </Link>
           </div>
           {/* Decorative circles */}
           <div className="absolute top-0 left-0 w-64 h-64 bg-white opacity-5 rounded-full -translate-x-1/2 -translate-y-1/2"></div>

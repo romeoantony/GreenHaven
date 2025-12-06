@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const FAQItem = ({ question, answer }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -61,7 +62,7 @@ const FAQPage = () => {
   ];
 
   return (
-    <div className="bg-gray-50 min-h-screen py-12 px-4">
+    <div className="bg-gray-50 min-h-[calc(100vh-10rem)] py-12 px-4 flex flex-col justify-center">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-12">
           <div className="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm text-primary">
@@ -81,9 +82,9 @@ const FAQPage = () => {
 
         <div className="mt-16 text-center">
           <p className="text-gray-600 mb-4">Still have questions?</p>
-          <a href="/contact" className="text-primary font-semibold hover:underline">
+          <Link to="/contact" className="text-primary font-semibold hover:underline">
             Contact our support team
-          </a>
+          </Link>
         </div>
       </div>
     </div>

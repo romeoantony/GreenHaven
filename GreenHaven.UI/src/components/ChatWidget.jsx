@@ -55,7 +55,7 @@ const ChatContent = ({ isOpen, setIsOpen, user, token }) => {
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.95 }}
-          className="bg-white rounded-lg shadow-2xl w-80 sm:w-96 mb-4 overflow-hidden border border-gray-200 flex flex-col h-[500px]"
+          className="bg-white rounded-lg shadow-2xl w-80 sm:w-96 max-w-[calc(100vw-3rem)] mb-4 overflow-hidden border border-gray-200 flex flex-col h-[500px]"
         >
           {/* Header */}
           <div className="bg-primary p-4 flex justify-between items-center text-white">

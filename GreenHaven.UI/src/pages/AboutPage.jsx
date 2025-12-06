@@ -4,7 +4,7 @@ import { Leaf, Heart, Users } from 'lucide-react';
 
 const AboutPage = () => {
   return (
-    <div className="bg-white">
+    <div className="bg-white min-h-[calc(100vh-10rem)] flex flex-col justify-center">
       {/* Hero Section */}
       <div className="relative bg-primary text-white py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">

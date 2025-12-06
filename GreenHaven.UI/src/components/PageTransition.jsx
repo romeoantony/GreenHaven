@@ -2,6 +2,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const PageTransition = ({ children }) => {
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
