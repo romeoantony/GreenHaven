@@ -1,3 +1,4 @@
+using GreenHaven.API.DTOs;
 using GreenHaven.API.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -21,28 +22,32 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllUsers()
+    public async Task<IActionResult> GetAllUsersAsync(CancellationToken cancellationToken)
     {
-        var users = await _userManager.Users.ToListAsync();
-        var userDtos = new List<object>();
-
-        foreach (var user in users)
-        {
-            var roles = await _userManager.GetRolesAsync(user);
-            userDtos.Add(new
+        // Fix N+1: Join Users with UserRoles and Roles
+        var usersWithRoles = await _context.Users
+            .AsNoTracking()
+            .Select(u => new
             {
-                user.Id,
-                user.FullName,
-                user.Email,
-                user.UserName,
-                Roles = roles
-            });
-        }
-        return Ok(userDtos);
+                u.Id,
+                u.FullName,
+                u.Email,
+                u.UserName,
+                Roles = _context.UserRoles
+                    .Where(ur => ur.UserId == u.Id)
+                    .Join(_context.Roles,
+                        ur => ur.RoleId,
+                        r => r.Id,
+                        (ur, r) => r.Name)
+                    .ToList()
+            })
+            .ToListAsync(cancellationToken);
+
+        return Ok(usersWithRoles);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserDto model)
+    public async Task<IActionResult> UpdateUserAsync(string id, [FromBody] UpdateUserDto model)
     {
         var user = await _userManager.FindByIdAsync(id);
         if (user == null)
@@ -79,18 +84,13 @@ public class UsersController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteUser(string id)
+    public async Task<IActionResult> DeleteUserAsync(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
         if (user == null)
         {
             return NotFound("User not found");
         }
-
-        // Prevent deleting the last admin or specific protected accounts if needed
-        // For now, we'll just allow deletion but maybe check if it's the current user?
-        // var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        // if (currentUserId == id) return BadRequest("Cannot delete your own account");
 
         try
         {
@@ -112,7 +112,7 @@ public class UsersController : ControllerBase
             }
             return StatusCode(500, "An error occurred while deleting the user.");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, "An internal server error occurred.");
         }

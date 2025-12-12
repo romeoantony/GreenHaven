@@ -1,6 +1,7 @@
 using GreenHaven.API.Data;
 using GreenHaven.API.DTOs;
 using GreenHaven.API.Entities;
+using GreenHaven.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,58 +13,86 @@ namespace GreenHaven.API.Controllers;
 public class PlantsController : ControllerBase
 {
     private readonly AppDbContext _context;
-    private readonly IWebHostEnvironment _environment;
+    private readonly IImageService _imageService;
+    private readonly ILogger<PlantsController> _logger;
 
-    public PlantsController(AppDbContext context, IWebHostEnvironment environment)
+    public PlantsController(AppDbContext context, IImageService imageService, ILogger<PlantsController> logger)
     {
         _context = context;
-        _environment = environment;
+        _imageService = imageService;
+        _logger = logger;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Plant>>> GetPlants()
+    public async Task<ActionResult<IEnumerable<PlantDto>>> GetPlantsAsync(CancellationToken cancellationToken)
     {
-        return await _context.Plants
+        var plants = await _context.Plants
+            .AsNoTracking()
             .Include(p => p.Category)
             .Where(p => !p.IsDeleted)
-            .ToListAsync();
+            .Select(p => new PlantDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                ScientificName = p.ScientificName,
+                Description = p.Description,
+                Price = p.Price,
+                ImageUrl = p.ImageUrl,
+                StockQuantity = p.StockQuantity,
+                LightRequirement = p.LightRequirement,
+                WaterNeeds = p.WaterNeeds,
+                IsPetFriendly = p.IsPetFriendly,
+                Difficulty = p.Difficulty,
+                CategoryId = p.CategoryId,
+                CategoryName = p.Category != null ? p.Category.Name : string.Empty
+            })
+            .ToListAsync(cancellationToken);
+
+        return Ok(plants);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<Plant>> GetPlant(int id)
+    public async Task<ActionResult<PlantDto>> GetPlantAsync(int id, CancellationToken cancellationToken)
     {
         var plant = await _context.Plants
+            .AsNoTracking()
             .Include(p => p.Category)
-            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
+            .Where(p => p.Id == id && !p.IsDeleted)
+            .Select(p => new PlantDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                ScientificName = p.ScientificName,
+                Description = p.Description,
+                Price = p.Price,
+                ImageUrl = p.ImageUrl,
+                StockQuantity = p.StockQuantity,
+                LightRequirement = p.LightRequirement,
+                WaterNeeds = p.WaterNeeds,
+                IsPetFriendly = p.IsPetFriendly,
+                Difficulty = p.Difficulty,
+                CategoryId = p.CategoryId,
+                CategoryName = p.Category != null ? p.Category.Name : string.Empty
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (plant == null)
         {
             return NotFound();
         }
 
-        return plant;
+        return Ok(plant);
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<Plant>> CreatePlant([FromForm] CreatePlantWithImageDto dto)
+    public async Task<ActionResult<PlantDto>> CreatePlantAsync([FromForm] CreatePlantWithImageDto dto, CancellationToken cancellationToken)
     {
-        string imageUrl = "/placeholder.jpg"; // Default
+        string imageUrl = "/placeholder.jpg";
 
         if (dto.ImageFile != null && dto.ImageFile.Length > 0)
         {
-            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(dto.ImageFile.FileName)}";
-            var filePath = Path.Combine(_environment.WebRootPath ?? "wwwroot", fileName);
-
-            // Ensure directory exists
-            Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await dto.ImageFile.CopyToAsync(stream);
-            }
-
-            imageUrl = $"/{fileName}";
+            imageUrl = await _imageService.SaveImageAsync(dto.ImageFile);
         }
 
         var plant = new Plant
@@ -82,16 +111,35 @@ public class PlantsController : ControllerBase
         };
 
         _context.Plants.Add(plant);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
-        return CreatedAtAction(nameof(GetPlant), new { id = plant.Id }, plant);
+        // Fetch back to get Category name if needed, or just map manually
+        // For simplicity, we'll return the DTO with the data we have
+        var plantDto = new PlantDto
+        {
+            Id = plant.Id,
+            Name = plant.Name,
+            ScientificName = plant.ScientificName,
+            Description = plant.Description,
+            Price = plant.Price,
+            ImageUrl = plant.ImageUrl,
+            StockQuantity = plant.StockQuantity,
+            LightRequirement = plant.LightRequirement,
+            WaterNeeds = plant.WaterNeeds,
+            IsPetFriendly = plant.IsPetFriendly,
+            Difficulty = plant.Difficulty,
+            CategoryId = plant.CategoryId,
+            // CategoryName would need a fetch or we accept it's null in response for create
+        };
+
+        return CreatedAtAction(nameof(GetPlantAsync), new { id = plant.Id }, plantDto);
     }
 
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdatePlant(int id, [FromForm] CreatePlantWithImageDto dto)
+    public async Task<IActionResult> UpdatePlantAsync(int id, [FromForm] CreatePlantWithImageDto dto, CancellationToken cancellationToken)
     {
-        var plant = await _context.Plants.FindAsync(id);
+        var plant = await _context.Plants.FindAsync(new object[] { id }, cancellationToken);
 
         if (plant == null)
         {
@@ -100,17 +148,7 @@ public class PlantsController : ControllerBase
 
         if (dto.ImageFile != null && dto.ImageFile.Length > 0)
         {
-            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(dto.ImageFile.FileName)}";
-            var filePath = Path.Combine(_environment.WebRootPath ?? "wwwroot", fileName);
-
-            Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await dto.ImageFile.CopyToAsync(stream);
-            }
-
-            plant.ImageUrl = $"/{fileName}";
+            plant.ImageUrl = await _imageService.SaveImageAsync(dto.ImageFile);
         }
 
         plant.Name = dto.Name;
@@ -124,23 +162,23 @@ public class PlantsController : ControllerBase
         plant.Difficulty = dto.Difficulty;
         plant.CategoryId = dto.CategoryId;
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         return NoContent();
     }
 
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> DeletePlant(int id)
+    public async Task<IActionResult> DeletePlantAsync(int id, CancellationToken cancellationToken)
     {
-        var plant = await _context.Plants.FindAsync(id);
+        var plant = await _context.Plants.FindAsync(new object[] { id }, cancellationToken);
         if (plant == null)
         {
             return NotFound();
         }
 
         plant.IsDeleted = true;
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         return NoContent();
     }

@@ -14,23 +14,19 @@ namespace GreenHaven.API.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<OrdersController> _logger;
 
-        public OrdersController(AppDbContext context)
+        public OrdersController(AppDbContext context, ILogger<OrdersController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto createOrderDto)
+        public async Task<IActionResult> CreateOrderAsync([FromBody] CreateOrderDto createOrderDto, CancellationToken cancellationToken)
         {
-            Console.WriteLine($"Received CreateOrder Request. Items: {createOrderDto?.Items?.Count ?? 0}, Address: {createOrderDto?.ShippingAddress}, Phone: {createOrderDto?.PhoneNumber}");
-            if (createOrderDto?.Items != null)
-            {
-                foreach(var item in createOrderDto.Items)
-                {
-                    Console.WriteLine($"Item - PlantId: {item.PlantId}, Qty: {item.Quantity}");
-                }
-            }
+            _logger.LogInformation("Received CreateOrder Request. Items: {ItemCount}, Address: {Address}, Phone: {Phone}", 
+                createOrderDto?.Items?.Count ?? 0, createOrderDto?.ShippingAddress, createOrderDto?.PhoneNumber);
 
             try
             {
@@ -41,6 +37,12 @@ namespace GreenHaven.API.Controllers
                 {
                     return BadRequest("Order must contain at least one item.");
                 }
+
+                // Fix N+1: Fetch all plants in one query
+                var plantIds = createOrderDto.Items.Select(i => i.PlantId).ToList();
+                var plants = await _context.Plants
+                    .Where(p => plantIds.Contains(p.Id))
+                    .ToDictionaryAsync(p => p.Id, p => p, cancellationToken);
 
                 var order = new Order
                 {
@@ -57,8 +59,7 @@ namespace GreenHaven.API.Controllers
 
                 foreach (var itemDto in createOrderDto.Items)
                 {
-                    var plant = await _context.Plants.FindAsync(itemDto.PlantId);
-                    if (plant == null)
+                    if (!plants.TryGetValue(itemDto.PlantId, out var plant))
                     {
                         return BadRequest($"Plant with ID {itemDto.PlantId} not found.");
                     }
@@ -77,26 +78,26 @@ namespace GreenHaven.API.Controllers
                 order.TotalAmount = totalAmount;
 
                 _context.Orders.Add(order);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
 
-                return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, new { order.Id, order.TotalAmount, order.Status });
+                return CreatedAtAction(nameof(GetOrderAsync), new { id = order.Id }, new { order.Id, order.TotalAmount, order.Status });
             }
             catch (Exception ex)
             {
-                // Log the inner exception if it exists
-                var innerMessage = ex.InnerException != null ? ex.InnerException.Message : "";
-                return StatusCode(500, new { message = "Internal Server Error during order creation", error = ex.Message, innerError = innerMessage, stack = ex.StackTrace });
+                _logger.LogError(ex, "Internal Server Error during order creation");
+                return StatusCode(500, new { message = "Internal Server Error during order creation" });
             }
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetOrder(int id)
+        public async Task<IActionResult> GetOrderAsync(int id, CancellationToken cancellationToken)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var order = await _context.Orders
+                .AsNoTracking()
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Plant)
-                .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
+                .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId, cancellationToken);
 
             if (order == null) return NotFound();
 
@@ -121,15 +122,16 @@ namespace GreenHaven.API.Controllers
         }
 
         [HttpGet("any/{id}")]
-        public async Task<IActionResult> GetOrderAdmin(int id)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetOrderAdminAsync(int id, CancellationToken cancellationToken)
         {
             try
             {
-                // Admin only endpoint to fetch any order details
                 var order = await _context.Orders
+                    .AsNoTracking()
                     .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Plant)
-                    .FirstOrDefaultAsync(o => o.Id == id);
+                    .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
 
                 if (order == null) return NotFound();
 
@@ -154,15 +156,17 @@ namespace GreenHaven.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Internal Server Error", error = ex.Message, stack = ex.StackTrace });
+                _logger.LogError(ex, "Error in GetOrderAdmin");
+                return StatusCode(500, new { message = "Internal Server Error" });
             }
         }
         
         [HttpGet]
-        public async Task<IActionResult> GetMyOrders()
+        public async Task<IActionResult> GetMyOrdersAsync(CancellationToken cancellationToken)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var orders = await _context.Orders
+                .AsNoTracking()
                 .Where(o => o.UserId == userId)
                 .OrderByDescending(o => o.OrderDate)
                 .Select(o => new 
@@ -173,19 +177,17 @@ namespace GreenHaven.API.Controllers
                     o.Status,
                     ItemCount = o.OrderItems.Sum(oi => oi.Quantity)
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return Ok(orders);
         }
+
         [HttpGet("all")]
-        public async Task<IActionResult> GetAllOrders()
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllOrdersAsync(CancellationToken cancellationToken)
         {
-            // Ideally, check for Admin role here. 
-            // For now, assuming the UI protects this or we add [Authorize(Roles = "Admin")] if roles are set up.
-            // Since roles might not be fully configured, we'll rely on the fact that only Admins see the dashboard.
-            // But for security, let's check if the user has "Admin" role if possible, or just return all for now as requested.
-            
             var orders = await _context.Orders
+                .AsNoTracking()
                 .Include(o => o.User)
                 .OrderByDescending(o => o.OrderDate)
                 .Select(o => new 
@@ -200,19 +202,19 @@ namespace GreenHaven.API.Controllers
                     UserEmail = o.User.Email,
                     ItemCount = o.OrderItems.Sum(oi => oi.Quantity)
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return Ok(orders);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateOrder(int id, [FromBody] UpdateOrderDto updateOrderDto)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateOrderAsync(int id, [FromBody] UpdateOrderDto updateOrderDto, CancellationToken cancellationToken)
         {
-            // Ideally authorize Admin only
             var order = await _context.Orders
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Plant)
-                .FirstOrDefaultAsync(o => o.Id == id);
+                .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
 
             if (order == null) return NotFound();
 
@@ -230,30 +232,17 @@ namespace GreenHaven.API.Controllers
                     if (existingItem != null)
                     {
                         existingItem.Quantity = itemDto.Quantity;
-                        // If quantity is 0, maybe remove? For now assuming > 0
                         if (existingItem.Quantity <= 0) 
                         {
                              _context.Entry(existingItem).State = EntityState.Deleted;
                         }
-                        else 
-                        {
-                            totalAmount += existingItem.Quantity * existingItem.UnitPrice;
-                        }
                     }
                 }
                 
-                // Recalculate total for items not in DTO? 
-                // The loop above only updates total for items in DTO. 
-                // We should recalculate total from scratch based on all items in DB after update.
-                // But wait, we haven't saved changes yet so DB has old values.
-                // Better approach: Update quantities, then recalculate total from all items in memory.
-                
-                // Let's re-iterate to calculate total correctly
-                totalAmount = 0;
+                // Recalculate total
+                // We need to check current state of items
                 foreach(var item in order.OrderItems)
                 {
-                     // If it was marked deleted, skip? 
-                     // EF Core tracks state.
                      if (_context.Entry(item).State != EntityState.Deleted)
                      {
                          totalAmount += item.Quantity * item.UnitPrice;
@@ -262,7 +251,7 @@ namespace GreenHaven.API.Controllers
                 order.TotalAmount = totalAmount;
             }
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return NoContent();
         }

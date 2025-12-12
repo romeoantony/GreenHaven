@@ -1,5 +1,10 @@
 # GreenHaven 🌿
 
+![.NET](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
+
 GreenHaven is a modern e-commerce platform dedicated to bringing nature indoors. We offer a curated collection of indoor plants, providing a seamless shopping experience for plant enthusiasts with a beautiful, botanical-inspired design.
 
 ## 🌟 Live Demo
