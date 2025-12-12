@@ -167,7 +167,7 @@ This project is for educational and portfolio purposes.
 
 ## 👨‍💻 Author
 
-**Romeo Antony**
+**Akshay Antony**
 
 - GitHub: [@romeoantony](https://github.com/romeoantony)
 
