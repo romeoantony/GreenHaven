@@ -7,7 +7,18 @@ using System.Text;
 using GreenHaven.API.Entities;
 using GreenHaven.API.Extensions;
 
+using Serilog;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 // Add services to the container.
 builder.Services.AddControllers()
@@ -21,53 +32,68 @@ builder.Services.ConfigureSqlContext(builder.Configuration);
 builder.Services.ConfigureIdentity();
 builder.Services.ConfigureJWT(builder.Configuration);
 builder.Services.ConfigureCors(builder.Configuration);
+builder.Services.ConfigureRateLimiting();
 
-        builder.Services.AddScoped<GreenHaven.API.Services.IImageService, GreenHaven.API.Services.ImageService>();
+builder.Services.AddHealthChecks();
 
-        var app = builder.Build();
+builder.Services.AddScoped<GreenHaven.API.Services.IImageService, GreenHaven.API.Services.ImageService>();
 
-        // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+else
+{
+    app.UseHsts();
+}
+
+app.ConfigureExceptionHandler();
+app.ConfigureSecurityHeaders();
+
+app.UseHttpsRedirection();
+
+app.UseSerilogRequestLogging();
+
+app.UseCors("AllowReactApp");
+
+app.UseStaticFiles();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseRateLimiter();
+
+app.MapHealthChecks("/health");
+app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        var context = services.GetRequiredService<AppDbContext>();
+
+        DbInitializer.Initialize(context);
+
+        if (!await roleManager.RoleExistsAsync("Admin"))
         {
-            app.UseSwagger();
-            app.UseSwaggerUI();
+            await roleManager.CreateAsync(new IdentityRole("Admin"));
         }
 
-        app.UseHttpsRedirection();
+        var adminEmail = "admin@greenhaven.com";
+        var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
-        app.UseCors("AllowReactApp");
-
-        app.UseStaticFiles();
-
-        app.UseAuthentication();
-        app.UseAuthorization();
-
-        app.MapControllers();
-
-        using (var scope = app.Services.CreateScope())
+        if (adminUser == null)
         {
-            var services = scope.ServiceProvider;
-            try
-            {
-                var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-                var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-                var context = services.GetRequiredService<AppDbContext>();
-
-                DbInitializer.Initialize(context);
-
-                if (!await roleManager.RoleExistsAsync("Admin"))
-                {
-                    await roleManager.CreateAsync(new IdentityRole("Admin"));
-                }
-
-                var adminEmail = "admin@greenhaven.com";
-                var adminUser = await userManager.FindByEmailAsync(adminEmail);
-
-                if (adminUser == null)
-                {
-                    adminUser = new ApplicationUser { UserName = adminEmail, Email = adminEmail };
-                    var adminPassword = builder.Configuration["AdminPassword"] ?? "Admin@123"; // Fallback only for dev
-                    await userManager.CreateAsync(adminUser, adminPassword);
+            adminUser = new ApplicationUser { UserName = adminEmail, Email = adminEmail };
+            var adminPassword = builder.Configuration["AdminPassword"] ?? "Admin@123"; // Fallback only for dev
+            await userManager.CreateAsync(adminUser, adminPassword);
             await userManager.AddToRoleAsync(adminUser, "Admin");
         }
     }

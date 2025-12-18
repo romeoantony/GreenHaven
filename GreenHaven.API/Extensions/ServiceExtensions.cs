@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Http;
+using System.Threading.RateLimiting;
 
 namespace GreenHaven.API.Extensions;
 
@@ -63,5 +66,23 @@ public static class ServiceExtensions
     {
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
+    }
+
+    public static void ConfigureRateLimiting(this IServiceCollection services)
+    {
+        services.AddRateLimiter(options =>
+        {
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter("GlobalLimiter", partition =>
+                    new FixedWindowRateLimiterOptions
+                    {
+                        AutoReplenishment = true,
+                        PermitLimit = 100,
+                        QueueLimit = 0,
+                        Window = TimeSpan.FromMinutes(1)
+                    }));
+            
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        });
     }
 }

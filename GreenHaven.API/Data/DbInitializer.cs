@@ -96,18 +96,14 @@ namespace GreenHaven.API.Data
                     var existingPlant = context.Plants.FirstOrDefault(p => p.Name == plant.Name);
                     if (existingPlant != null)
                     {
-                        bool isModified = false;
-
                         if (existingPlant.ImageUrl != plant.ImageUrl)
                         {
                             existingPlant.ImageUrl = plant.ImageUrl;
-                            isModified = true;
                         }
 
                         if (existingPlant.Price != plant.Price)
                         {
                             existingPlant.Price = plant.Price;
-                            isModified = true;
                         }
                     }
                 }
