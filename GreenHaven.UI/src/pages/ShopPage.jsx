@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import HeroSection from '../components/HeroSection';
 import PlantDetailsModal from '../components/PlantDetailsModal';
 import ErrorPage from '../components/ErrorPage';
+import LoadingScreen from '../components/LoadingScreen';
 
 const fetchPlants = async () => {
   const response = await api.get('/plants');
@@ -79,7 +80,7 @@ const ShopPage = () => {
     });
   }, [plants, filters, searchTerm]);
 
-  if (isLoading) return <div className="text-center mt-10">Loading plants...</div>;
+  if (isLoading) return <LoadingScreen message="Fetching our finest plants..." />;
   if (error) return (
     <ErrorPage 
       title="Unable to Load Plants" 
@@ -90,7 +91,12 @@ const ShopPage = () => {
   );
 
   return (
-    <div className="flex flex-col w-full relative">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8 }}
+      className="flex flex-col w-full relative"
+    >
       <HeroSection />
       <div className="flex w-full container mx-auto relative">
         {/* Desktop Sidebar */}
@@ -213,7 +219,7 @@ const ShopPage = () => {
           />
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 };
 

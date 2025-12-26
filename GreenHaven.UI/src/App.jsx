@@ -29,6 +29,7 @@ import ErrorBoundary from './components/ErrorBoundary.jsx';
 import ErrorPage from './components/ErrorPage.jsx';
 import AlreadyLoggedIn from './components/AlreadyLoggedIn.jsx';
 import ChatWidget from './components/ChatWidget.jsx';
+import LoadingScreen from './components/LoadingScreen.jsx';
 
 const queryClient = new QueryClient();
 
@@ -49,7 +50,7 @@ function App() {
           <CartDrawer />
           <main className="flex-grow container mx-auto px-4 py-8 flex flex-col">
             <AnimatePresence mode="wait">
-              <Suspense fallback={<div className="flex justify-center items-center h-64">Loading...</div>}>
+              <Suspense fallback={<LoadingScreen />}>
                 <Routes location={location} key={location.pathname}>
                   <Route path="/" element={
                     <PageTransition>
