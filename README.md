@@ -78,7 +78,7 @@ The project is divided into two main components:
 To get the project running locally, you will need to set up both the frontend and backend.
 
 > [!NOTE]
-> For detailed architecture, debugging tips, and deployment instructions, please refer to the [**Developer Documentation**](./DEVELOPER_README.md).
+> For detailed architecture, debugging tips, and deployment instructions, please refer to the [**Developer Documentation**](./docs/DEVELOPER_README.md).
 
 ### Prerequisites
 
@@ -102,7 +102,7 @@ To get the project running locally, you will need to set up both the frontend an
 
 ## ☁️ Deployment
 
-For detailed deployment instructions (Azure App Service, Environment Variables, etc.), please see the [**Deployment Section**](./DEVELOPER_README.md#%EF%B8%8F-deployment) in the Developer README.
+For detailed deployment instructions (Azure App Service, Environment Variables, etc.), please see the [**Deployment Section**](./docs/DEVELOPER_README.md#%EF%B8%8F-deployment) in the Developer README.
 
 ## 🛠️ Technologies Used
 
